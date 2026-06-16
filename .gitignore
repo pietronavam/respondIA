@@ -1,0 +1,14 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.db
+catalog.txt
+*.ogg
+*.mp3
+*.wav
+*.mp4
+.DS_Store
+.paddleocr/

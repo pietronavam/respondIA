@@ -8,8 +8,11 @@ _ocr_engine = None
 def _get_ocr():
     global _ocr_engine
     if _ocr_engine is None:
-        from paddleocr import PaddleOCR
-        _ocr_engine = PaddleOCR(use_angle_cls=True, lang="es", show_log=False)
+        try:
+            from paddleocr import PaddleOCR
+            _ocr_engine = PaddleOCR(use_angle_cls=True, lang="es", show_log=False)
+        except ImportError:
+            raise RuntimeError("PaddleOCR no disponible en este entorno. Usa la opción de texto manual.")
     return _ocr_engine
 
 

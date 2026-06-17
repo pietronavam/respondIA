@@ -8,8 +8,11 @@ _model = None
 def _get_model():
     global _model
     if _model is None:
-        import whisper
-        _model = whisper.load_model("base")
+        try:
+            import whisper
+            _model = whisper.load_model("base")
+        except ImportError:
+            raise RuntimeError("Whisper no disponible en este entorno.")
     return _model
 
 

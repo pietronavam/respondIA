@@ -67,7 +67,7 @@ with tab_catalog:
         )
         if st.button("Guardar catálogo"):
             try:
-                requests.post(f"{API_URL}/catalog/manual", json={"text": manual_text}, timeout=10)
+                requests.post(f"{API_URL}/catalog/manual", json={"text": manual_text}, timeout=60)
                 st.success("Catálogo guardado correctamente")
             except Exception as e:
                 st.error(f"Error: {e}")
@@ -92,7 +92,7 @@ with tab_config:
             requests.post(
                 f"{API_URL}/catalog/config",
                 json={"business_name": business_name, "hours": hours},
-                timeout=10,
+                timeout=60,
             )
             st.success("Configuración guardada")
         except Exception as e:
@@ -123,7 +123,7 @@ with tab_chat:
         st.rerun()
 
     try:
-        res = requests.get(f"{API_URL}/conversations/", timeout=10)
+        res = requests.get(f"{API_URL}/conversations/", timeout=60)
         msgs = res.json()
     except Exception:
         msgs = []

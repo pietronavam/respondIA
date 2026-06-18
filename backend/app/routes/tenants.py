@@ -87,6 +87,22 @@ def delete_tenant_by_email(email: str, x_admin_key: str = Header(...)):
     return {"deleted": email}
 
 
+@router.patch("/{tenant_id}/phone")
+def set_phone_by_id(tenant_id: str, phone: str, x_admin_key: str = Header(...)):
+    _check_admin(x_admin_key)
+    if phone.startswith("sandbox:") or phone.startswith("whatsapp:"):
+        normalized = phone
+    else:
+        normalized = f"whatsapp:{phone}"
+    with SessionLocal() as db:
+        t = db.query(TenantModel).filter(TenantModel.id == tenant_id).first()
+        if not t:
+            raise HTTPException(404, "Tenant no encontrado")
+        t.phone_number = normalized
+        db.commit()
+    return {"updated": tenant_id, "phone_number": normalized}
+
+
 @router.patch("/by-email/phone")
 def set_phone_by_email(email: str, phone: str, x_admin_key: str = Header(...)):
     _check_admin(x_admin_key)

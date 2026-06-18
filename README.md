@@ -43,26 +43,32 @@ Para probar el bot en WhatsApp:
 
 ## Arquitectura
 
-```
-[Cliente WhatsApp]
-      │ mensaje texto / audio
-      ▼
-[Twilio WhatsApp Sandbox]
-      │ HTTP POST /webhook/whatsapp
-      ▼
-[FastAPI Backend — Render]
-      ├── audio? → Whisper → transcripción
-      ├── recupera historial de SQLite
-      ├── carga catálogo del negocio
-      └── DeepSeek API → genera respuesta
-      │
-      ▼
-[Respuesta → Twilio → Cliente WhatsApp]
+> Diagrama visual completo: [docs/architecture.html](docs/architecture.html)
 
-[Streamlit Dashboard — Streamlit Cloud]
-      ├── Catálogo: sube PDF → PaddleOCR / texto manual
-      ├── Configuración: nombre negocio, horario, webhook URL
-      └── Conversaciones: historial en tiempo real
+```mermaid
+flowchart TD
+    A([📱 Cliente\nWhatsApp]) -->|texto / audio| B[📡 Twilio\nWhatsApp Sandbox]
+    B -->|POST /webhook/whatsapp| C
+
+    subgraph BACKEND ["⚡ FastAPI Backend — Render"]
+        C[webhook.py] --> D{¿audio?}
+        D -->|sí| E[🎙️ Whisper\ntranscripción]
+        D -->|no| F[DeepSeek API\ndeeepseek-chat]
+        E --> F
+        C --> G[🗄️ SQLite\nhistorial · catálogo · config]
+        F -->|lee catálogo e historial| G
+        F --> H[respuesta generada]
+    end
+
+    H -->|TwiML response| B
+    B -->|mensaje| A
+
+    subgraph DASHBOARD ["🎛️ Streamlit Dashboard — Streamlit Cloud"]
+        I([🏪 Dueño\npyme]) -->|HTTPS| J[Panel de Control]
+        J -->|sube PDF/imagen| K[👁️ PaddleOCR\nOCR → texto]
+        K -->|POST /catalog/upload| C
+        J -->|GET /conversations| C
+    end
 ```
 
 ## Cómo correr localmente

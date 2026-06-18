@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <title>RespondIA — Arquitectura</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px;
+    }
+
+    .diagram {
+      width: 1100px;
+      background: #1e293b;
+      border-radius: 24px;
+      padding: 48px;
+      border: 1px solid #334155;
+    }
+
+    .title {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .title h1 { color: #f8fafc; font-size: 28px; font-weight: 900; }
+    .title p  { color: #64748b; font-size: 14px; margin-top: 6px; }
+
+    /* ── ROWS ── */
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 12px;
+    }
+
+    /* ── NODES ── */
+    .node {
+      border-radius: 14px;
+      padding: 16px 20px;
+      text-align: center;
+      position: relative;
+      min-width: 140px;
+    }
+    .node .icon { font-size: 28px; display: block; margin-bottom: 6px; }
+    .node .name { font-size: 13px; font-weight: 700; color: #f1f5f9; }
+    .node .sub  { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+
+    .node-client   { background: #0d3320; border: 2px solid #25D366; }
+    .node-twilio   { background: #1c1242; border: 2px solid #6366f1; }
+    .node-api      { background: #172036; border: 2px solid #3b82f6; min-width: 200px; }
+    .node-llm      { background: #1c1010; border: 2px solid #f97316; }
+    .node-db       { background: #172036; border: 2px solid #3b82f6; }
+    .node-whisper  { background: #111820; border: 2px solid #0ea5e9; }
+    .node-ocr      { background: #111820; border: 2px solid #0ea5e9; }
+    .node-dashboard{ background: #1a1020; border: 2px solid #a855f7; min-width: 160px; }
+    .node-owner    { background: #1a1020; border: 2px solid #a855f7; }
+
+    /* ── ARROWS ── */
+    .arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      min-width: 60px;
+    }
+    .arrow .line {
+      width: 48px;
+      height: 2px;
+      background: #334155;
+      position: relative;
+    }
+    .arrow .line::after {
+      content: '';
+      position: absolute;
+      right: -1px;
+      top: -4px;
+      border: 5px solid transparent;
+      border-left: 8px solid #475569;
+    }
+    .arrow .label {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 4px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .arrow-v {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+    }
+    .arrow-v .vline {
+      width: 2px;
+      flex: 1;
+      background: #334155;
+      position: relative;
+    }
+    .arrow-v .vline::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: -4px;
+      border: 5px solid transparent;
+      border-top: 8px solid #475569;
+    }
+    .arrow-v .vlabel {
+      font-size: 10px;
+      color: #64748b;
+      margin-left: 8px;
+      white-space: nowrap;
+    }
+
+    /* ── INTERNAL SERVICES BOX ── */
+    .services-box {
+      border: 1px dashed #334155;
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .services-box .box-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #3b82f6;
+      margin-bottom: 4px;
+    }
+    .services-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* ── LAYER LABELS ── */
+    .layer {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .layer-label {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #334155;
+      width: 20px;
+    }
+
+    /* ── LEGEND ── */
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid #1e293b;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    /* ── DEPLOY BADGES ── */
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-top: 4px;
+    }
+    .badge-render    { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .badge-streamlit { background: rgba(168,85,247,0.15); color: #c084fc; }
+    .badge-cloud     { background: rgba(249,115,22,0.15); color: #fb923c; }
+    .badge-twilio    { background: rgba(99,102,241,0.15); color: #818cf8; }
+  </style>
+</head>
+<body>
+<div class="diagram">
+
+  <div class="title">
+    <h1>RespondIA — Arquitectura del Sistema</h1>
+    <p>FastAPI · DeepSeek · Twilio WhatsApp · PaddleOCR · Whisper · SQLite · Streamlit</p>
+  </div>
+
+  <!-- ROW 1: Cliente + Twilio -->
+  <div class="row">
+
+    <!-- Cliente WhatsApp -->
+    <div class="node node-client">
+      <span class="icon">📱</span>
+      <div class="name">Cliente</div>
+      <div class="sub">WhatsApp</div>
+    </div>
+
+    <!-- Arrow cliente → twilio -->
+    <div class="arrow">
+      <div class="line"></div>
+      <div class="label">texto / audio</div>
+    </div>
+
+    <!-- Twilio -->
+    <div class="node node-twilio">
+      <span class="icon">📡</span>
+      <div class="name">Twilio</div>
+      <div class="sub">WhatsApp Sandbox</div>
+      <span class="badge badge-twilio">cloud</span>
+    </div>
+
+    <!-- Arrow twilio → fastapi -->
+    <div class="arrow">
+      <div class="line"></div>
+      <div class="label">POST /webhook</div>
+    </div>
+
+    <!-- FastAPI + servicios internos -->
+    <div class="services-box">
+      <div class="box-label">FASTAPI BACKEND — RENDER</div>
+      <div class="services-row">
+
+        <!-- FastAPI core -->
+        <div class="node node-api">
+          <span class="icon">⚡</span>
+          <div class="name">FastAPI</div>
+          <div class="sub">webhook · catalog · conversations</div>
+          <span class="badge badge-render">render.com</span>
+        </div>
+
+        <!-- Servicios internos -->
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div class="node node-whisper" style="min-width:130px">
+            <span class="icon" style="font-size:20px">🎙️</span>
+            <div class="name" style="font-size:12px">Whisper</div>
+            <div class="sub">transcripción audio</div>
+          </div>
+          <div class="node node-ocr" style="min-width:130px">
+            <span class="icon" style="font-size:20px">👁️</span>
+            <div class="name" style="font-size:12px">PaddleOCR</div>
+            <div class="sub">PDF / imagen → texto</div>
+          </div>
+        </div>
+
+        <!-- DeepSeek -->
+        <div class="node node-llm">
+          <span class="icon">🧠</span>
+          <div class="name">DeepSeek API</div>
+          <div class="sub">deepseek-chat</div>
+          <span class="badge badge-cloud">cloud API</span>
+        </div>
+
+        <!-- SQLite -->
+        <div class="node node-db">
+          <span class="icon">🗄️</span>
+          <div class="name">SQLite</div>
+          <div class="sub">historial · catálogo · config</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Arrow fastapi → twilio (respuesta) -->
+    <div style="display:flex;flex-direction:column;align-items:center;padding:0 4px">
+      <div style="height:2px;width:48px;background:#334155;position:relative;transform:scaleX(-1)">
+        <div style="position:absolute;right:-1px;top:-4px;border:5px solid transparent;border-left:8px solid #475569"></div>
+      </div>
+      <div style="font-size:10px;color:#64748b;margin-top:4px">respuesta TwiML</div>
+    </div>
+
+  </div>
+
+  <!-- Arrow vertical abajo → cliente -->
+  <div style="display:flex;justify-content:center;align-items:center;gap:8px;margin:4px 0 8px;">
+    <div style="width:2px;height:32px;background:#334155;position:relative;margin-left:-740px">
+      <div style="position:absolute;bottom:-1px;left:-4px;border:5px solid transparent;border-top:8px solid #475569"></div>
+    </div>
+    <span style="font-size:10px;color:#64748b;margin-left:-730px">mensaje al cliente</span>
+  </div>
+
+  <!-- Separador -->
+  <div style="border-top:1px dashed #1e293b; margin:24px 0 20px;"></div>
+
+  <!-- ROW 2: Dashboard -->
+  <div class="row" style="justify-content:flex-end; padding-right:60px; gap:16px">
+
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:#a855f7">PANEL DE CONTROL</span>
+      <div style="display:flex;align-items:center;gap:0">
+
+        <div class="node node-owner">
+          <span class="icon">🏪</span>
+          <div class="name">Dueño pyme</div>
+          <div class="sub">navegador / móvil</div>
+        </div>
+
+        <div class="arrow">
+          <div class="line"></div>
+          <div class="label">HTTPS</div>
+        </div>
+
+        <div class="node node-dashboard">
+          <span class="icon">🎛️</span>
+          <div class="name">Streamlit</div>
+          <div class="sub">catálogo · config · chats</div>
+          <span class="badge badge-streamlit">streamlit cloud</span>
+        </div>
+
+        <div class="arrow">
+          <div class="line"></div>
+          <div class="label">REST API</div>
+        </div>
+
+        <div class="node node-api" style="min-width:140px">
+          <span class="icon" style="font-size:20px">⚡</span>
+          <div class="name">FastAPI</div>
+          <div class="sub">/catalog · /conversations</div>
+          <span class="badge badge-render">render.com</span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#25D366"></div>
+      <span>WhatsApp / Twilio</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#3b82f6"></div>
+      <span>Backend (Render)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#f97316"></div>
+      <span>DeepSeek LLM (cloud)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#0ea5e9"></div>
+      <span>Procesamiento local (OCR / Audio)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#a855f7"></div>
+      <span>Dashboard (Streamlit Cloud)</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

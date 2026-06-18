@@ -1,6 +1,6 @@
 import os
 from openai import OpenAI
-from ..database import get_history, get_business_setting
+from ..database import get_history, get_setting
 
 client = OpenAI(
     api_key=os.getenv("DEEPSEEK_API_KEY"),
@@ -25,10 +25,10 @@ REGLAS:
 """
 
 
-async def get_bot_response(user_message: str, customer_id: str) -> str:
-    catalog = get_business_setting("catalog", "Sin catálogo cargado aún.")
-    business_name = get_business_setting("business_name", os.getenv("BUSINESS_NAME", "el negocio"))
-    hours = get_business_setting("hours", "Lunes a sábado 9am-7pm")
+async def get_bot_response(user_message: str, customer_id: str, tenant_id: str) -> str:
+    catalog = get_setting(tenant_id, "catalog", "Sin catálogo cargado aún.")
+    business_name = get_setting(tenant_id, "business_name", "el negocio")
+    hours = get_setting(tenant_id, "hours", "Lunes a sábado 9am-7pm")
 
     system = SYSTEM_TEMPLATE.format(
         business_name=business_name,
@@ -36,7 +36,7 @@ async def get_bot_response(user_message: str, customer_id: str) -> str:
         hours=hours,
     )
 
-    history = get_history(customer_id, limit=8)
+    history = get_history(tenant_id, customer_id, limit=8)
     messages = [{"role": "system", "content": system}] + history + [{"role": "user", "content": user_message}]
 
     response = client.chat.completions.create(

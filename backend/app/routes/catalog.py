@@ -1,7 +1,8 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from pydantic import BaseModel
+from ..auth import require_tenant
+from ..database import Tenant, save_setting, get_setting
 from ..services.ocr import extract_text_from_pdf, extract_text_from_image
-from ..database import save_catalog, get_catalog, save_business_setting, get_business_setting
 
 router = APIRouter(prefix="/catalog")
 
@@ -14,7 +15,10 @@ ALLOWED_TYPES = {
 
 
 @router.post("/upload")
-async def upload_catalog(file: UploadFile = File(...)):
+async def upload_catalog(
+    file: UploadFile = File(...),
+    tenant: Tenant = Depends(require_tenant),
+):
     content_type = file.content_type or ""
     if content_type not in ALLOWED_TYPES:
         raise HTTPException(400, f"Tipo de archivo no soportado: {content_type}")
@@ -30,14 +34,13 @@ async def upload_catalog(file: UploadFile = File(...)):
     if not text:
         raise HTTPException(422, "No se pudo extraer texto del archivo")
 
-    save_catalog(text)
-    save_business_setting("catalog", text)
+    save_setting(tenant.id, "catalog", text)
     return {"status": "ok", "characters": len(text), "preview": text[:500]}
 
 
 @router.get("/")
-def get_current_catalog():
-    return {"catalog": get_business_setting("catalog", get_catalog())}
+def get_current_catalog(tenant: Tenant = Depends(require_tenant)):
+    return {"catalog": get_setting(tenant.id, "catalog", "")}
 
 
 class ManualCatalog(BaseModel):
@@ -45,8 +48,8 @@ class ManualCatalog(BaseModel):
 
 
 @router.post("/manual")
-def save_manual(data: ManualCatalog):
-    save_business_setting("catalog", data.text)
+def save_manual(data: ManualCatalog, tenant: Tenant = Depends(require_tenant)):
+    save_setting(tenant.id, "catalog", data.text)
     return {"status": "ok"}
 
 
@@ -56,15 +59,15 @@ class BusinessConfig(BaseModel):
 
 
 @router.post("/config")
-def save_config(cfg: BusinessConfig):
-    save_business_setting("business_name", cfg.business_name)
-    save_business_setting("hours", cfg.hours)
+def save_config(cfg: BusinessConfig, tenant: Tenant = Depends(require_tenant)):
+    save_setting(tenant.id, "business_name", cfg.business_name)
+    save_setting(tenant.id, "hours", cfg.hours)
     return {"status": "ok"}
 
 
 @router.get("/config")
-def get_config():
+def get_config(tenant: Tenant = Depends(require_tenant)):
     return {
-        "business_name": get_business_setting("business_name", "Mi Negocio"),
-        "hours": get_business_setting("hours", "Lunes a sábado 9am-7pm"),
+        "business_name": get_setting(tenant.id, "business_name", "Mi Negocio"),
+        "hours": get_setting(tenant.id, "hours", "Lunes a sábado 9am-7pm"),
     }

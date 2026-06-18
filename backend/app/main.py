@@ -4,9 +4,9 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import init_db
-from .routes import webhook, catalog, conversations
+from .routes import webhook, catalog, conversations, tenants
 
-app = FastAPI(title="RespondIA API", version="0.1.0")
+app = FastAPI(title="RespondIA API", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,11 +24,12 @@ def startup():
 app.include_router(webhook.router)
 app.include_router(catalog.router)
 app.include_router(conversations.router)
+app.include_router(tenants.router)
 
 
 @app.get("/")
 def root():
-    return {"status": "RespondIA backend running", "version": "0.1.0"}
+    return {"status": "RespondIA backend running", "version": "0.2.0"}
 
 
 @app.get("/health")

@@ -28,13 +28,15 @@ REGLAS GENERALES:
 - Si no puedes resolver algo, ofrece escalar con el dueño
 
 REGLAS PARA PEDIDOS:
-Cuando un cliente quiera comprar uno o más productos:
-1. Confirma los productos, cantidades y calcula el total en soles
-2. Envía las instrucciones de pago (Yape y/o link de pago si están disponibles)
-3. Pide confirmación del pago (foto o captura del comprobante)
-4. Al FINAL de tu respuesta agrega esta línea exacta (no la muestres visualmente, va al sistema):
+Cuando un cliente confirme qué producto(s) quiere comprar:
+1. Confirma el producto, talla/color si aplica, y calcula el total (producto + envío si lo menciona)
+2. En ESA MISMA respuesta envía las instrucciones de pago (Yape/Plin/link disponibles)
+3. Pide la foto del comprobante de pago
+4. OBLIGATORIO: al FINAL de esa misma respuesta agrega EXACTAMENTE esta línea (sin mostrarla al cliente):
    [PEDIDO:{{"items":"{items_placeholder}","total":{total_placeholder}}}]
-   Reemplaza items con descripción del pedido y total con el monto numérico en soles.
+   - items = descripción breve del pedido (ej: "1 blusa floreada talla L negro")
+   - total = monto total en soles como número entero (ej: 55)
+   - NO omitas este marcador bajo ninguna circunstancia cuando confirmes un pedido
 
 Cuando el cliente mande foto de comprobante de pago, responde que ya lo recibiste y que procederás con el envío.
 """

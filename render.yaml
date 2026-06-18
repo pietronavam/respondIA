@@ -9,7 +9,7 @@ services:
     name: respondIA-backend
     runtime: python
     rootDir: backend
-    buildCommand: pip install --no-cache-dir -r requirements.txt && python -c "import pg8000; print('pg8000 OK')"
+    buildCommand: python -m pip install --no-cache-dir -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL

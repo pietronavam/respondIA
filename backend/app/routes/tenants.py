@@ -90,7 +90,10 @@ def delete_tenant_by_email(email: str, x_admin_key: str = Header(...)):
 @router.patch("/by-email/phone")
 def set_phone_by_email(email: str, phone: str, x_admin_key: str = Header(...)):
     _check_admin(x_admin_key)
-    normalized = phone if phone.startswith("whatsapp:") else f"whatsapp:{phone}"
+    if phone.startswith("sandbox:") or phone.startswith("whatsapp:"):
+        normalized = phone
+    else:
+        normalized = f"whatsapp:{phone}"
     with SessionLocal() as db:
         t = db.query(TenantModel).filter(TenantModel.email == email).first()
         if not t:

@@ -3,7 +3,8 @@ from fastapi import APIRouter, Form, Response
 from twilio.twiml.messaging_response import MessagingResponse
 from ..services.claude_service import get_bot_response
 from ..services.whisper_service import transcribe_audio_url
-from ..database import save_message, get_tenant_by_phone, create_order, get_pending_order, mark_order_paid
+from ..database import save_message, get_tenant_by_phone, create_order, get_pending_order, mark_order_paid, get_setting
+from ..services.vision_service import verify_payment_screenshot
 
 router = APIRouter()
 
@@ -35,16 +36,33 @@ async def whatsapp_webhook(
     else:
         user_message = Body.strip() if Body.strip() else "[Mensaje vacío]"
 
-    # Image received → check if it's a payment screenshot
-    if is_image:
+    # Image received → verify if it's a valid payment screenshot
+    if is_image and MediaUrl0:
         pending = get_pending_order(tenant.id, From)
         if pending:
-            mark_order_paid(pending.id)
-            bot_reply = (
-                f"¡Pago recibido! ✅ Tu pedido {pending.code} está confirmado. "
-                f"Te avisamos cuando esté listo para envío."
+            yape   = get_setting(tenant.id, "yape_number") or ""
+            plin   = get_setting(tenant.id, "plin_number") or ""
+            verified, reason = await verify_payment_screenshot(
+                image_url=MediaUrl0,
+                twilio_sid=ACCOUNT_SID,
+                twilio_token=AUTH_TOKEN,
+                expected_total=pending.total,
+                yape_number=yape,
+                plin_number=plin,
             )
-            save_message(tenant.id, From, "[Comprobante de pago]", bot_reply)
+            if verified:
+                mark_order_paid(pending.id)
+                bot_reply = (
+                    f"¡Pago verificado! ✅ Tu pedido {pending.code} está confirmado. "
+                    f"Te avisamos cuando esté listo para envío. 🙌"
+                )
+            else:
+                bot_reply = (
+                    f"No pude verificar el pago 🤔 {reason}. "
+                    f"Por favor envía la captura completa de Yape/Plin "
+                    f"mostrando el monto de S/{pending.total}."
+                )
+            save_message(tenant.id, From, "[Imagen]", bot_reply)
             resp = MessagingResponse()
             resp.message(bot_reply)
             return Response(content=str(resp), media_type="application/xml")

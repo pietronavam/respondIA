@@ -107,6 +107,12 @@ def save_message(tenant_id: str, customer: str, user_msg: str, bot_msg: str):
         db.commit()
 
 
+def save_owner_message(tenant_id: str, customer: str, text: str):
+    with SessionLocal() as db:
+        db.add(Message(tenant_id=tenant_id, customer=customer, role="owner", content=text))
+        db.commit()
+
+
 def get_history(tenant_id: str, customer: str, limit: int = 8) -> list[dict]:
     with SessionLocal() as db:
         rows = db.query(Message).filter(

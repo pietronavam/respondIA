@@ -229,10 +229,26 @@ with st.sidebar:
     biz_name = cfg_side.get("business_name") or "Mi Negocio"
     st.markdown(f"### {biz_name}")
     st.caption(f"Código: `{st.session_state.api_key[:8]}…`")
+
+    # Fetch and cache tenant info (phone number)
+    if "tenant_info" not in st.session_state:
+        try:
+            info = api("GET", "/tenants/me").json()
+            st.session_state.tenant_info = info
+        except Exception:
+            st.session_state.tenant_info = {}
+    info = st.session_state.get("tenant_info", {})
+    phone = info.get("phone_number", "")
+    if phone and not phone.startswith("sandbox:"):
+        st.caption(f"📱 `{phone.replace('whatsapp:', '')}`")
+    else:
+        st.caption("📱 Número sandbox compartido")
+
     st.divider()
     if st.button("Cerrar sesión"):
         del st.session_state.api_key
         st.session_state.pop("business_cfg", None)
+        st.session_state.pop("tenant_info", None)
         st.rerun()
 
 
@@ -444,11 +460,12 @@ with tab_orders:
 
 # ── CONVERSACIONES ────────────────────────────────────────────────────────────
 with tab_chat:
-    st.markdown("### Conversaciones recientes")
-
-    col_r, _ = st.columns([1, 6])
+    col_title2, col_r = st.columns([5, 1])
+    with col_title2:
+        st.markdown("### Conversaciones")
     with col_r:
-        if st.button("Actualizar 🔄"):
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("Actualizar 🔄", use_container_width=True):
             st.rerun()
 
     if not msgs:
@@ -456,10 +473,84 @@ with tab_chat:
     else:
         df = pd.DataFrame(msgs)
         customers = df["customer"].unique().tolist()
-        with st.container(border=True):
-            selected = st.selectbox("Cliente", customers, label_visibility="collapsed")
-            thread = df[df["customer"] == selected].sort_values("ts")
-            st.divider()
-            for _, row in thread.iterrows():
-                role = "user" if row["role"] == "user" else "assistant"
-                st.chat_message(role).write(row["content"])
+        customer_labels = [c.replace("whatsapp:+51", "+51 ").replace("whatsapp:", "") for c in customers]
+        label_to_raw = dict(zip(customer_labels, customers))
+
+        selected_label = st.selectbox("Cliente", customer_labels, label_visibility="collapsed")
+        selected = label_to_raw[selected_label]
+        thread = df[df["customer"] == selected].sort_values("ts")
+
+        # WhatsApp-style chat window
+        st.markdown("""
+        <div style="background:#128C7E;padding:12px 16px;border-radius:12px 12px 0 0;
+                    display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:#25D366;
+                      display:flex;align-items:center;justify-content:center;
+                      color:white;font-weight:700;font-size:1rem">C</div>
+          <div>
+            <div style="color:white;font-weight:600;font-size:0.9rem">Cliente</div>
+            <div style="color:#d1fae5;font-size:0.75rem">WhatsApp</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        chat_html = '<div style="background:#ECE5DD;padding:16px;min-height:300px;max-height:480px;overflow-y:auto;border-left:1px solid #ddd;border-right:1px solid #ddd">'
+        for _, row in thread.iterrows():
+            ts = str(row.get("ts", ""))[:16].replace("T", " ")
+            content = str(row["content"]).replace("<", "&lt;").replace(">", "&gt;")
+            role = row["role"]
+
+            if role == "user":
+                chat_html += f"""
+                <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+                  <div style="background:#DCF8C6;border-radius:12px 12px 2px 12px;
+                              padding:8px 12px;max-width:70%;box-shadow:0 1px 2px rgba(0,0,0,0.1)">
+                    <div style="font-size:0.875rem;color:#1a1a1a">{content}</div>
+                    <div style="font-size:0.68rem;color:#667781;text-align:right;margin-top:2px">{ts} ✓✓</div>
+                  </div>
+                </div>"""
+            elif role == "assistant":
+                chat_html += f"""
+                <div style="display:flex;justify-content:flex-start;margin-bottom:8px">
+                  <div style="background:white;border-radius:12px 12px 12px 2px;
+                              padding:8px 12px;max-width:70%;box-shadow:0 1px 2px rgba(0,0,0,0.1)">
+                    <div style="font-size:0.68rem;color:#25D366;font-weight:600;margin-bottom:2px">🤖 RespondIA</div>
+                    <div style="font-size:0.875rem;color:#1a1a1a">{content}</div>
+                    <div style="font-size:0.68rem;color:#667781;text-align:right;margin-top:2px">{ts}</div>
+                  </div>
+                </div>"""
+            else:  # owner
+                chat_html += f"""
+                <div style="display:flex;justify-content:flex-start;margin-bottom:8px">
+                  <div style="background:#FFF9C4;border-radius:12px 12px 12px 2px;
+                              padding:8px 12px;max-width:70%;box-shadow:0 1px 2px rgba(0,0,0,0.1);
+                              border-left:3px solid #F59E0B">
+                    <div style="font-size:0.68rem;color:#D97706;font-weight:600;margin-bottom:2px">👤 Tú</div>
+                    <div style="font-size:0.875rem;color:#1a1a1a">{content}</div>
+                    <div style="font-size:0.68rem;color:#667781;text-align:right;margin-top:2px">{ts}</div>
+                  </div>
+                </div>"""
+        chat_html += "</div>"
+        st.markdown(chat_html, unsafe_allow_html=True)
+
+        # Owner reply box
+        st.markdown("""
+        <div style="background:#F0F0F0;padding:8px 12px;border-radius:0 0 12px 12px;
+                    border:1px solid #ddd;border-top:none;font-size:0.75rem;color:#667781">
+            Escribe un mensaje para intervenir en la conversación como dueño del negocio
+        </div>""", unsafe_allow_html=True)
+
+        col_msg, col_send = st.columns([5, 1])
+        with col_msg:
+            owner_text = st.text_input("mensaje", placeholder="Escribe tu respuesta...",
+                                        label_visibility="collapsed", key="owner_msg")
+        with col_send:
+            if st.button("Enviar →", type="primary", use_container_width=True):
+                if owner_text.strip():
+                    try:
+                        api("POST", "/conversations/send",
+                            json={"customer": selected, "text": owner_text})
+                        st.success("Mensaje enviado")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error: {e}")

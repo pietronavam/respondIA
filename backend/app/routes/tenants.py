@@ -2,7 +2,8 @@ import os
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from twilio.rest import Client
-from ..database import create_tenant, list_tenants, save_setting
+from ..auth import require_tenant
+from ..database import create_tenant, list_tenants, save_setting, Tenant as TenantModel
 
 router = APIRouter(prefix="/tenants")
 
@@ -66,6 +67,16 @@ def create_new_tenant(data: TenantCreate, x_admin_key: str = Header(...)):
         "api_key": tenant.api_key,
         "phone_number": assigned_number,
         "note": "Activa WhatsApp Business para este número desde Twilio Console → Messaging → Senders.",
+    }
+
+
+@router.get("/me")
+def get_me(tenant: TenantModel = Depends(require_tenant)):
+    return {
+        "id": tenant.id,
+        "name": tenant.name,
+        "phone_number": tenant.phone_number,
+        "plan": tenant.plan,
     }
 
 

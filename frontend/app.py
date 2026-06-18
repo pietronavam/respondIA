@@ -207,7 +207,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # ── TABS ──────────────────────────────────────────────────────────────────────
 
-tab_catalog, tab_config, tab_chat = st.tabs(["📦  Catálogo", "⚙️  Configuración", "💬  Conversaciones"])
+tab_catalog, tab_config, tab_orders, tab_chat = st.tabs(["📦  Catálogo", "⚙️  Configuración", "🛒  Pedidos", "💬  Conversaciones"])
 
 # ── CATÁLOGO ──────────────────────────────────────────────────────────────────
 with tab_catalog:
@@ -268,27 +268,96 @@ with tab_config:
         cfg_data = {}
 
     with st.container(border=True):
+        st.markdown("**Datos del negocio**")
         biz_input = st.text_input("Nombre del negocio",
                                    value=cfg_data.get("business_name", ""),
                                    placeholder="Ej: Boutique Lucía")
         hours_input = st.text_input("Horario de atención",
                                      value=cfg_data.get("hours", ""),
                                      placeholder="Ej: Lunes a sábado 9am – 7pm")
-        if st.button("Guardar configuración", type="primary"):
-            try:
-                api("POST", "/catalog/config",
-                    json={"business_name": biz_input, "hours": hours_input})
-                st.session_state.business_cfg = {"business_name": biz_input, "hours": hours_input}
-                st.success("Configuración guardada")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Error: {e}")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("**Métodos de pago**")
+        st.caption("El bot los enviará automáticamente cuando un cliente quiera comprar.")
+        yape_input = st.text_input("Número Yape",
+                                    value=cfg_data.get("yape_number", ""),
+                                    placeholder="Ej: 987654321")
+        culqi_input = st.text_input("Link de pago Culqi (opcional)",
+                                     value=cfg_data.get("culqi_link", ""),
+                                     placeholder="https://checkout.culqi.com/...")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Guardar configuración", type="primary"):
+        try:
+            api("POST", "/catalog/config", json={
+                "business_name": biz_input,
+                "hours": hours_input,
+                "yape_number": yape_input,
+                "culqi_link": culqi_input,
+            })
+            st.session_state.business_cfg = {"business_name": biz_input, "hours": hours_input}
+            st.success("Configuración guardada")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error: {e}")
 
     st.markdown("<br>", unsafe_allow_html=True)
     with st.container(border=True):
         st.markdown("**Estado del bot**")
         st.info("Webhook activo → `https://respondia.onrender.com/webhook/whatsapp`", icon="✅")
         st.caption("Tu bot responde automáticamente en el número asignado a tu cuenta.")
+
+# ── PEDIDOS ───────────────────────────────────────────────────────────────────
+with tab_orders:
+    st.markdown("### Pedidos")
+    col_r2, _ = st.columns([1, 6])
+    with col_r2:
+        if st.button("Actualizar 🔄", key="refresh_orders"):
+            st.rerun()
+
+    try:
+        order_list = api("GET", "/orders/").json()
+        if not isinstance(order_list, list):
+            order_list = []
+    except Exception:
+        order_list = []
+
+    if not order_list:
+        st.info("Aún no hay pedidos. Cuando un cliente compre por WhatsApp aparecerá aquí.", icon="🛒")
+    else:
+        STATUS_COLOR = {
+            "pendiente": "🟡",
+            "pagado": "🟢",
+            "enviado": "🔵",
+            "entregado": "✅",
+        }
+        STATUS_OPTIONS = ["pendiente", "pagado", "enviado", "entregado"]
+
+        for order in order_list:
+            icon = STATUS_COLOR.get(order["status"], "⚪")
+            with st.container(border=True):
+                col_info, col_action = st.columns([3, 1])
+                with col_info:
+                    st.markdown(f"**{order['code']}** &nbsp; {icon} `{order['status'].upper()}`")
+                    st.caption(f"Cliente: `{order['customer']}` · {order['created_at'][:16]}")
+                    st.write(f"**{order['items']}**")
+                    st.markdown(f"**Total: S/{order['total']}**")
+                with col_action:
+                    new_status = st.selectbox(
+                        "Cambiar estado",
+                        STATUS_OPTIONS,
+                        index=STATUS_OPTIONS.index(order["status"]),
+                        key=f"status_{order['id']}",
+                        label_visibility="collapsed",
+                    )
+                    if new_status != order["status"]:
+                        if st.button("Actualizar", key=f"upd_{order['id']}"):
+                            try:
+                                api("PATCH", f"/orders/{order['id']}", json={"status": new_status})
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Error: {e}")
 
 # ── CONVERSACIONES ────────────────────────────────────────────────────────────
 with tab_chat:

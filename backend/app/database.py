@@ -43,6 +43,18 @@ class Message(Base):
     ts = Column(DateTime, server_default=func.now())
 
 
+class Order(Base):
+    __tablename__ = "orders"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(String, unique=True, nullable=False)   # "#0001"
+    tenant_id = Column(String, ForeignKey("tenants.id"), nullable=False)
+    customer = Column(String, nullable=False)             # whatsapp:+51xxx
+    items = Column(Text, nullable=False)                  # descripción libre
+    total = Column(Integer, nullable=False)               # soles
+    status = Column(String, default="pendiente")          # pendiente|pagado|enviado|entregado
+    created_at = Column(DateTime, server_default=func.now())
+
+
 def init_db():
     Base.metadata.create_all(engine)
 
@@ -137,3 +149,44 @@ def save_setting(tenant_id: str, key: str, value: str):
         else:
             db.add(TenantSetting(tenant_id=tenant_id, key=key, value=value))
         db.commit()
+
+
+# --- Orders ---
+
+def _next_order_code(db, tenant_id: str) -> str:
+    count = db.query(Order).filter(Order.tenant_id == tenant_id).count()
+    return f"#{str(count + 1).zfill(4)}"
+
+
+def create_order(tenant_id: str, customer: str, items: str, total: int) -> Order:
+    with SessionLocal() as db:
+        code = _next_order_code(db, tenant_id)
+        order = Order(code=code, tenant_id=tenant_id, customer=customer,
+                      items=items, total=total)
+        db.add(order)
+        db.commit()
+        db.refresh(order)
+        db.expunge(order)
+        return order
+
+
+def get_orders(tenant_id: str) -> list[Order]:
+    with SessionLocal() as db:
+        orders = db.query(Order).filter(
+            Order.tenant_id == tenant_id
+        ).order_by(Order.created_at.desc()).all()
+        for o in orders:
+            db.expunge(o)
+        return orders
+
+
+def update_order_status(order_id: int, tenant_id: str, status: str) -> bool:
+    with SessionLocal() as db:
+        order = db.query(Order).filter(
+            Order.id == order_id, Order.tenant_id == tenant_id
+        ).first()
+        if not order:
+            return False
+        order.status = status
+        db.commit()
+        return True

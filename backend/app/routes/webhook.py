@@ -3,7 +3,7 @@ from fastapi import APIRouter, Form, Response
 from twilio.twiml.messaging_response import MessagingResponse
 from ..services.claude_service import get_bot_response
 from ..services.whisper_service import transcribe_audio_url
-from ..database import save_message, get_tenant_by_phone
+from ..database import save_message, get_tenant_by_phone, create_order
 
 router = APIRouter()
 
@@ -22,9 +22,7 @@ async def whatsapp_webhook(
 ):
     tenant = get_tenant_by_phone(To)
     if not tenant:
-        # Número no registrado — respuesta silenciosa para no exponer info
-        resp = MessagingResponse()
-        return Response(content=str(resp), media_type="application/xml")
+        return Response(content=str(MessagingResponse()), media_type="application/xml")
 
     if NumMedia > 0 and MediaContentType0 and "audio" in MediaContentType0 and MediaUrl0:
         try:
@@ -35,7 +33,25 @@ async def whatsapp_webhook(
     else:
         user_message = Body.strip() if Body.strip() else "[Mensaje vacío]"
 
-    bot_reply = await get_bot_response(user_message, customer_id=From, tenant_id=tenant.id)
+    bot_reply, order_data = await get_bot_response(
+        user_message, customer_id=From, tenant_id=tenant.id
+    )
+
+    if order_data:
+        try:
+            total = int(float(str(order_data.get("total", 0))))
+            items = str(order_data.get("items", "Pedido"))
+            order = create_order(
+                tenant_id=tenant.id,
+                customer=From,
+                items=items,
+                total=total,
+            )
+            # Append order code to the bot reply so the customer sees it
+            bot_reply = f"{bot_reply}\n\nTu código de pedido: {order.code} 📦"
+        except Exception:
+            pass
+
     save_message(tenant.id, From, user_message, bot_reply)
 
     resp = MessagingResponse()

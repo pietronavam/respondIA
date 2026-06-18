@@ -9,16 +9,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///respondIA.db")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-try:
-    engine = create_engine(DATABASE_URL)
-    # force driver import now so we catch missing driver at startup
-    with engine.connect() as _c:
-        pass
-except Exception as _e:
-    import sys
-    print(f"[WARN] PostgreSQL unavailable ({_e.__class__.__name__}), falling back to SQLite", file=sys.stderr, flush=True)
-    DATABASE_URL = "sqlite:///respondIA.db"
-    engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base = declarative_base()
 

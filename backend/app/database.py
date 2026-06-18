@@ -1,6 +1,6 @@
 import os
 import uuid
-from sqlalchemy import create_engine, Column, String, Integer, DateTime, Text, ForeignKey, Boolean
+from sqlalchemy import create_engine, Column, String, Integer, DateTime, Text, ForeignKey, Boolean, text
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.sql import func
 
@@ -20,6 +20,8 @@ class Tenant(Base):
     name = Column(String, nullable=False)
     phone_number = Column(String, unique=True, nullable=False)  # whatsapp:+1xxx
     api_key = Column(String, unique=True, default=lambda: str(uuid.uuid4()))
+    email = Column(String, nullable=True)
+    hashed_password = Column(String, nullable=True)
     plan = Column(String, default="basic")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
@@ -57,6 +59,13 @@ class Order(Base):
 
 def init_db():
     Base.metadata.create_all(engine)
+    # Add new columns to existing tables without Alembic
+    with engine.begin() as conn:
+        for col, typ in [("email", "VARCHAR"), ("hashed_password", "VARCHAR")]:
+            try:
+                conn.execute(text(f"ALTER TABLE tenants ADD COLUMN IF NOT EXISTS {col} {typ}"))
+            except Exception:
+                pass
 
 
 # --- Tenant ---
@@ -74,20 +83,30 @@ def get_tenant_by_api_key(api_key: str) -> Tenant | None:
         return db.query(Tenant).filter(Tenant.api_key == api_key).first()
 
 
-def create_tenant(name: str, phone_number: str) -> Tenant:
+def create_tenant(name: str, phone_number: str,
+                  email: str = None, hashed_password: str = None) -> Tenant:
     with SessionLocal() as db:
         tenant = Tenant(
             id=str(uuid.uuid4()),
             name=name,
             phone_number=phone_number,
             api_key=str(uuid.uuid4()),
+            email=email,
+            hashed_password=hashed_password,
         )
         db.add(tenant)
         db.commit()
         db.refresh(tenant)
-        # detach from session so it can be used outside
         db.expunge(tenant)
         return tenant
+
+
+def get_tenant_by_email(email: str):
+    with SessionLocal() as db:
+        t = db.query(Tenant).filter(Tenant.email == email, Tenant.is_active == True).first()
+        if t:
+            db.expunge(t)
+        return t
 
 
 def list_tenants() -> list[Tenant]:

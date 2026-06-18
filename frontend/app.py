@@ -179,30 +179,26 @@ def login_screen():
         """, unsafe_allow_html=True)
 
         with st.container(border=True):
-            st.markdown("**Código de acceso**")
-            key_input = st.text_input(
-                "código",
-                type="password",
-                placeholder="Pega aquí tu código",
-                label_visibility="collapsed",
-            )
+            email_input = st.text_input("Correo electrónico", placeholder="tucorreo@gmail.com")
+            pass_input  = st.text_input("Contraseña", type="password", placeholder="••••••••")
             if st.button("Entrar →", type="primary", use_container_width=True):
-                if not key_input.strip():
-                    st.error("Ingresa tu código de acceso")
+                if not email_input.strip() or not pass_input:
+                    st.error("Ingresa tu correo y contraseña")
                     return
                 with st.spinner("Verificando..."):
                     try:
-                        r = requests.get(
-                            f"{API_URL}/catalog/config",
-                            headers={"X-API-Key": key_input.strip()},
+                        r = requests.post(
+                            f"{API_URL}/login",
+                            json={"email": email_input.strip(), "password": pass_input},
                             timeout=10,
                         )
                         if r.status_code == 200:
-                            st.session_state.api_key = key_input.strip()
-                            st.session_state.business_cfg = r.json()
+                            data = r.json()
+                            st.session_state.api_key = data["api_key"]
+                            st.session_state.business_cfg = {"business_name": data["business_name"]}
                             st.rerun()
                         elif r.status_code == 401:
-                            st.error("Código inválido. Verifica con tu administrador.")
+                            st.error("Correo o contraseña incorrectos")
                         else:
                             st.error(f"Error al conectar ({r.status_code})")
                     except Exception as e:
@@ -210,7 +206,8 @@ def login_screen():
 
         st.markdown(
             "<p style='text-align:center;color:#94A3B8;font-size:0.8rem;margin-top:1rem'>"
-            "¿Sin cuenta? Escríbenos para registrar tu pyme.</p>",
+            "¿Sin cuenta? <a href='https://pietronavam.github.io/respondIA/#registro' "
+            "style='color:#6366F1'>Regístrate gratis</a></p>",
             unsafe_allow_html=True,
         )
 

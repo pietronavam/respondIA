@@ -4,7 +4,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import init_db
-from .routes import webhook, catalog, conversations, tenants, orders, register
+from .routes import webhook, catalog, conversations, tenants, orders, register, login
 
 app = FastAPI(title="RespondIA API", version="0.2.0")
 
@@ -27,6 +27,7 @@ app.include_router(conversations.router)
 app.include_router(tenants.router)
 app.include_router(orders.router)
 app.include_router(register.router)
+app.include_router(login.router)
 
 
 @app.get("/")

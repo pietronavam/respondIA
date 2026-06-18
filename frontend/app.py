@@ -237,18 +237,28 @@ with st.sidebar:
     info = st.session_state.get("tenant_info", {})
     phone = info.get("phone_number", "")
     if phone and not phone.startswith("sandbox:"):
+        digits = phone.replace("whatsapp:", "").replace("+", "").replace(" ", "")
+        display = phone.replace("whatsapp:", "")
+        wa_link = f"https://wa.me/{digits}"
         st.markdown(f"""
         <div style='margin-top:4px'>
           <div style='font-size:0.68rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px'>Número WhatsApp</div>
-          <div style='background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:0.82rem;color:#25D366;font-weight:700'>{phone.replace('whatsapp:', '')}</div>
+          <div style='background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:0.82rem;color:#25D366;font-weight:700'>{display}</div>
+          <a href='{wa_link}' target='_blank' style='display:block;margin-top:6px;text-align:center;background:#25D366;color:#0f172a;font-weight:700;font-size:0.78rem;padding:7px 10px;border-radius:7px;text-decoration:none;'>
+            💬 Abrir chat en WhatsApp
+          </a>
         </div>
         """, unsafe_allow_html=True)
     else:
-        st.markdown("""
+        wa_link = "https://wa.me/14155238886"
+        st.markdown(f"""
         <div style='margin-top:4px'>
           <div style='font-size:0.68rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px'>Número WhatsApp (sandbox)</div>
           <div style='background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:0.82rem;color:#25D366;font-weight:700'>+1 415 523 8886</div>
-          <div style='font-size:0.68rem;color:#475569;margin-top:4px'>Compartido para pruebas</div>
+          <a href='{wa_link}' target='_blank' style='display:block;margin-top:6px;text-align:center;background:#25D366;color:#0f172a;font-weight:700;font-size:0.78rem;padding:7px 10px;border-radius:7px;text-decoration:none;'>
+            💬 Abrir chat en WhatsApp
+          </a>
+          <div style='font-size:0.68rem;color:#475569;margin-top:4px;text-align:center'>Sandbox compartido para pruebas</div>
         </div>
         """, unsafe_allow_html=True)
 

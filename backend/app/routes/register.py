@@ -64,10 +64,14 @@ def register(data: RegisterForm):
     tenant = create_tenant(name=name, phone_number=placeholder)
     save_setting(tenant.id, "business_name", name)
 
+    email_sent = False
     try:
         _send_welcome_email(data.email, name, tenant.api_key)
-    except Exception as e:
-        # Tenant created but email failed — don't lose the account
-        raise HTTPException(502, f"Cuenta creada pero error al enviar email: {e}")
+        email_sent = True
+    except Exception:
+        pass  # Email failed, return key directly as fallback
 
-    return {"status": "ok", "email": data.email}
+    if email_sent:
+        return {"status": "email_sent", "email": data.email}
+    else:
+        return {"status": "show_key", "api_key": tenant.api_key, "email": data.email}

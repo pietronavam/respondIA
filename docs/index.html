@@ -320,8 +320,15 @@
         <p class="text-slate-500 text-sm mb-2">
           Enviamos tu código de acceso a
         </p>
-        <p id="success-email" class="font-semibold text-slate-800 mb-6"></p>
-        <p class="text-slate-400 text-xs mb-6">Puede tardar 1-2 minutos. Revisa también tu carpeta de spam.</p>
+        <p id="success-email" class="font-semibold text-slate-800 mb-2"></p>
+        <p class="text-slate-400 text-xs mb-4">Puede tardar 1-2 minutos. Revisa también tu carpeta de spam.</p>
+        <div id="key-fallback" class="hidden bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-4">
+          <p class="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Código de acceso</p>
+          <div class="flex items-center justify-between gap-2">
+            <p id="fallback-key" class="text-slate-800 font-mono font-bold text-sm break-all text-left"></p>
+            <button onclick="copyFallbackKey()" class="shrink-0 text-xs font-semibold text-wa border border-wa rounded-lg px-3 py-1.5 hover:bg-wa hover:text-white transition whitespace-nowrap">Copiar</button>
+          </div>
+        </div>
         <a href="https://respond-ia.streamlit.app/" target="_blank"
           class="block w-full bg-wa hover:bg-wadark text-white font-bold py-3 rounded-xl transition text-center">
           Ir al panel →
@@ -378,13 +385,25 @@
 
         document.getElementById('form-box').classList.add('hidden');
         document.getElementById('success-box').classList.remove('hidden');
-        document.getElementById('success-email').textContent = email;
+
+        if (data.status === 'email_sent') {
+          document.getElementById('success-email').textContent = email;
+          document.getElementById('key-fallback').classList.add('hidden');
+        } else {
+          document.getElementById('success-email').textContent = email + ' (el email falló, usa este código)';
+          document.getElementById('key-fallback').classList.remove('hidden');
+          document.getElementById('fallback-key').textContent = data.api_key;
+        }
       } catch (e) {
         errEl.textContent = 'Error: ' + e.message;
         errEl.classList.remove('hidden');
         btn.textContent = 'Crear mi cuenta →';
         btn.disabled = false;
       }
+    }
+
+    function copyFallbackKey() {
+      navigator.clipboard.writeText(document.getElementById('fallback-key').textContent);
     }
 
     ['reg-name','reg-email'].forEach(id => {

@@ -190,3 +190,24 @@ def update_order_status(order_id: int, tenant_id: str, status: str) -> bool:
         order.status = status
         db.commit()
         return True
+
+
+def get_pending_order(tenant_id: str, customer: str) -> Order | None:
+    """Returns the most recent pending order for a customer."""
+    with SessionLocal() as db:
+        order = db.query(Order).filter(
+            Order.tenant_id == tenant_id,
+            Order.customer == customer,
+            Order.status == "pendiente",
+        ).order_by(Order.created_at.desc()).first()
+        if order:
+            db.expunge(order)
+        return order
+
+
+def mark_order_paid(order_id: int) -> None:
+    with SessionLocal() as db:
+        order = db.query(Order).filter(Order.id == order_id).first()
+        if order:
+            order.status = "pagado"
+            db.commit()

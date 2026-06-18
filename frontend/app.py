@@ -390,17 +390,18 @@ with tab_orders:
             "entregado": "badge-entregado",
         }
 
-        # Table header
-        st.markdown("""
-        <div class="order-table-header">
-            <span>Pedido</span>
-            <span>Fecha</span>
-            <span>Cliente</span>
-            <span>Producto</span>
-            <span>Total</span>
-            <span>Estado</span>
-            <span>Acción</span>
-        </div>""", unsafe_allow_html=True)
+        # Table header — same column proportions as data rows
+        COLS = [1, 1.8, 1.5, 2, 0.9, 1.5, 1.8]
+        HEADERS = ["PEDIDO", "FECHA", "CLIENTE", "PRODUCTO", "TOTAL", "ESTADO", "ACCIÓN"]
+        h_cols = st.columns(COLS)
+        for col, label in zip(h_cols, HEADERS):
+            col.markdown(
+                f"<div style='text-align:center;font-size:0.72rem;font-weight:700;"
+                f"color:#64748B;letter-spacing:0.06em;padding:6px 0;"
+                f"background:#F1F5F9;border-bottom:1px solid #E2E8F0'>{label}</div>",
+                unsafe_allow_html=True,
+            )
+        st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
         for order in order_list:
             badge = BADGE_CLASS.get(order["status"], "badge-pendiente")

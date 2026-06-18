@@ -315,7 +315,13 @@
         <p class="text-slate-500 text-sm mb-6">Este es tu código de acceso al panel. Guárdalo en un lugar seguro.</p>
         <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 mb-6">
           <p class="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Código de acceso</p>
-          <p id="success-key" class="text-slate-800 font-mono font-bold text-sm break-all"></p>
+          <div class="flex items-center justify-between gap-2">
+            <p id="success-key" class="text-slate-800 font-mono font-bold text-sm break-all text-left"></p>
+            <button onclick="copyKey()" id="copy-btn"
+              class="shrink-0 text-xs font-semibold text-wa border border-wa rounded-lg px-3 py-1.5 hover:bg-wa hover:text-white transition whitespace-nowrap">
+              Copiar
+            </button>
+          </div>
         </div>
         <a id="panel-link" href="https://respond-ia.streamlit.app/" target="_blank"
           class="block w-full bg-wa hover:bg-wadark text-white font-bold py-3 rounded-xl transition text-center">
@@ -385,6 +391,19 @@
         btn.disabled = false;
         console.error('Register error:', e);
       }
+    }
+
+    function copyKey() {
+      const key = document.getElementById('success-key').textContent;
+      navigator.clipboard.writeText(key).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = '¡Copiado!';
+        btn.classList.add('bg-wa', 'text-white');
+        setTimeout(() => {
+          btn.textContent = 'Copiar';
+          btn.classList.remove('bg-wa', 'text-white');
+        }, 2000);
+      });
     }
 
     document.getElementById('reg-name').addEventListener('keydown', function(e) {

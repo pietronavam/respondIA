@@ -153,6 +153,7 @@ st.markdown("""
 .order-code {font-weight: 700; color: #6366F1; font-size: 0.875rem;}
 .order-meta {font-size: 0.8rem; color: #64748B;}
 .order-total {font-weight: 700; color: #0F172A;}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -407,22 +408,21 @@ with tab_orders:
             customer_short = order["customer"].replace("whatsapp:+51", "+51 ").replace("whatsapp:", "")
 
             # Static row (HTML) + interactive action (Streamlit columns)
+            C = "<div style='text-align:center;padding-top:6px'>"
+            E = "</div>"
             c1, c2, c3, c4, c5, c6, c7 = st.columns([1, 1.8, 1.5, 2, 0.9, 1.5, 1.8])
             with c1:
-                st.markdown(f"<span class='order-code'>{order['code']}</span>", unsafe_allow_html=True)
+                st.markdown(f"{C}<span class='order-code'>{order['code']}</span>{E}", unsafe_allow_html=True)
             with c2:
-                st.markdown(f"<span class='order-meta'>{date_str}</span>", unsafe_allow_html=True)
+                st.markdown(f"{C}<span class='order-meta'>{date_str}</span>{E}", unsafe_allow_html=True)
             with c3:
-                st.markdown(f"<span class='order-meta'>{customer_short}</span>", unsafe_allow_html=True)
+                st.markdown(f"{C}<span class='order-meta'>{customer_short}</span>{E}", unsafe_allow_html=True)
             with c4:
-                st.markdown(f"<span style='font-size:0.875rem'>{order['items']}</span>", unsafe_allow_html=True)
+                st.markdown(f"{C}<span style='font-size:0.875rem'>{order['items']}</span>{E}", unsafe_allow_html=True)
             with c5:
-                st.markdown(f"<span class='order-total'>S/{order['total']}</span>", unsafe_allow_html=True)
+                st.markdown(f"{C}<span class='order-total'>S/{order['total']}</span>{E}", unsafe_allow_html=True)
             with c6:
-                st.markdown(
-                    f"<span class='badge {badge}'>{order['status']}</span>",
-                    unsafe_allow_html=True,
-                )
+                st.markdown(f"{C}<span class='badge {badge}'>{order['status']}</span>{E}", unsafe_allow_html=True)
             with c7:
                 new_status = st.selectbox(
                     "estado",

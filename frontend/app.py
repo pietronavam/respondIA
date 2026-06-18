@@ -237,9 +237,20 @@ with st.sidebar:
     info = st.session_state.get("tenant_info", {})
     phone = info.get("phone_number", "")
     if phone and not phone.startswith("sandbox:"):
-        st.caption(f"📱 `{phone.replace('whatsapp:', '')}`")
+        st.markdown(f"""
+        <div style='margin-top:4px'>
+          <div style='font-size:0.68rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px'>Número WhatsApp</div>
+          <div style='background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:0.82rem;color:#25D366;font-weight:700'>{phone.replace('whatsapp:', '')}</div>
+        </div>
+        """, unsafe_allow_html=True)
     else:
-        st.caption("📱 Número sandbox compartido")
+        st.markdown("""
+        <div style='margin-top:4px'>
+          <div style='font-size:0.68rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px'>Número WhatsApp (sandbox)</div>
+          <div style='background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:0.82rem;color:#25D366;font-weight:700'>+1 415 523 8886</div>
+          <div style='font-size:0.68rem;color:#475569;margin-top:4px'>Compartido para pruebas</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.divider()
     if st.button("Cerrar sesión"):

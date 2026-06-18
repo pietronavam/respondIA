@@ -107,6 +107,52 @@ st.markdown("""
 .login-header {text-align: center; padding: 1rem 0 1.5rem;}
 .login-header h1 {font-size: 2.2rem; font-weight: 800; color: #312E81; letter-spacing: -0.02em; margin: 0;}
 .login-header p {color: #64748B; margin-top: 0.4rem; font-size: 0.95rem;}
+
+/* Order table */
+.order-table-header {
+    display: grid;
+    grid-template-columns: 70px 130px 1fr 1fr 70px 110px 130px;
+    gap: 0;
+    padding: 0.5rem 1rem;
+    background: #F1F5F9;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid #E2E8F0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.order-row {
+    display: grid;
+    grid-template-columns: 70px 130px 1fr 1fr 70px 110px 130px;
+    gap: 0;
+    padding: 0.75rem 1rem;
+    border: 1px solid #E2E8F0;
+    border-top: none;
+    background: white;
+    font-size: 0.875rem;
+    color: #1E293B;
+    align-items: center;
+}
+.order-row:last-child {border-radius: 0 0 8px 8px;}
+.order-row:hover {background: #F8FAFC;}
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.badge-pendiente {background: #FEF9C3; color: #854D0E;}
+.badge-pagado    {background: #DCFCE7; color: #166534;}
+.badge-enviado   {background: #DBEAFE; color: #1E40AF;}
+.badge-entregado {background: #F0FDF4; color: #15803D;}
+.order-code {font-weight: 700; color: #6366F1; font-size: 0.875rem;}
+.order-meta {font-size: 0.8rem; color: #64748B;}
+.order-total {font-weight: 700; color: #0F172A;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -317,10 +363,12 @@ with tab_config:
 
 # ── PEDIDOS ───────────────────────────────────────────────────────────────────
 with tab_orders:
-    st.markdown("### Pedidos")
-    col_r2, _ = st.columns([1, 6])
-    with col_r2:
-        if st.button("Actualizar 🔄", key="refresh_orders"):
+    col_title, col_refresh = st.columns([5, 1])
+    with col_title:
+        st.markdown("### Pedidos")
+    with col_refresh:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("Actualizar 🔄", key="refresh_orders", use_container_width=True):
             st.rerun()
 
     try:
@@ -333,38 +381,65 @@ with tab_orders:
     if not order_list:
         st.info("Aún no hay pedidos. Cuando un cliente compre por WhatsApp aparecerá aquí.", icon="🛒")
     else:
-        STATUS_COLOR = {
-            "pendiente": "🟡",
-            "pagado": "🟢",
-            "enviado": "🔵",
-            "entregado": "✅",
-        }
         STATUS_OPTIONS = ["pendiente", "pagado", "enviado", "entregado"]
+        BADGE_CLASS = {
+            "pendiente": "badge-pendiente",
+            "pagado":    "badge-pagado",
+            "enviado":   "badge-enviado",
+            "entregado": "badge-entregado",
+        }
+
+        # Table header
+        st.markdown("""
+        <div class="order-table-header">
+            <span>Pedido</span>
+            <span>Fecha</span>
+            <span>Cliente</span>
+            <span>Producto</span>
+            <span>Total</span>
+            <span>Estado</span>
+            <span>Acción</span>
+        </div>""", unsafe_allow_html=True)
 
         for order in order_list:
-            icon = STATUS_COLOR.get(order["status"], "⚪")
-            with st.container(border=True):
-                col_info, col_action = st.columns([3, 1])
-                with col_info:
-                    st.markdown(f"**{order['code']}** &nbsp; {icon} `{order['status'].upper()}`")
-                    st.caption(f"Cliente: `{order['customer']}` · {order['created_at'][:16]}")
-                    st.write(f"**{order['items']}**")
-                    st.markdown(f"**Total: S/{order['total']}**")
-                with col_action:
-                    new_status = st.selectbox(
-                        "Cambiar estado",
-                        STATUS_OPTIONS,
-                        index=STATUS_OPTIONS.index(order["status"]),
-                        key=f"status_{order['id']}",
-                        label_visibility="collapsed",
-                    )
-                    if new_status != order["status"]:
-                        if st.button("Actualizar", key=f"upd_{order['id']}"):
-                            try:
-                                api("PATCH", f"/orders/{order['id']}", json={"status": new_status})
-                                st.rerun()
-                            except Exception as e:
-                                st.error(f"Error: {e}")
+            badge = BADGE_CLASS.get(order["status"], "badge-pendiente")
+            date_str = order["created_at"][:16].replace("T", " ") if order["created_at"] else "—"
+            customer_short = order["customer"].replace("whatsapp:+51", "+51 ").replace("whatsapp:", "")
+
+            # Static row (HTML) + interactive action (Streamlit columns)
+            c1, c2, c3, c4, c5, c6, c7 = st.columns([1, 1.8, 1.5, 2, 0.9, 1.5, 1.8])
+            with c1:
+                st.markdown(f"<span class='order-code'>{order['code']}</span>", unsafe_allow_html=True)
+            with c2:
+                st.markdown(f"<span class='order-meta'>{date_str}</span>", unsafe_allow_html=True)
+            with c3:
+                st.markdown(f"<span class='order-meta'>{customer_short}</span>", unsafe_allow_html=True)
+            with c4:
+                st.markdown(f"<span style='font-size:0.875rem'>{order['items']}</span>", unsafe_allow_html=True)
+            with c5:
+                st.markdown(f"<span class='order-total'>S/{order['total']}</span>", unsafe_allow_html=True)
+            with c6:
+                st.markdown(
+                    f"<span class='badge {badge}'>{order['status']}</span>",
+                    unsafe_allow_html=True,
+                )
+            with c7:
+                new_status = st.selectbox(
+                    "estado",
+                    STATUS_OPTIONS,
+                    index=STATUS_OPTIONS.index(order["status"]),
+                    key=f"sel_{order['id']}",
+                    label_visibility="collapsed",
+                )
+                if new_status != order["status"]:
+                    if st.button("✓", key=f"upd_{order['id']}", help="Guardar cambio"):
+                        try:
+                            api("PATCH", f"/orders/{order['id']}", json={"status": new_status})
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error: {e}")
+
+            st.markdown("<hr style='margin:4px 0;border-color:#F1F5F9'>", unsafe_allow_html=True)
 
 # ── CONVERSACIONES ────────────────────────────────────────────────────────────
 with tab_chat:

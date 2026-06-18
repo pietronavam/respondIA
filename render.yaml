@@ -7,9 +7,9 @@ databases:
 services:
   - type: web
     name: respondIA-backend
-    runtime: python
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: /opt/render/project/src/.venv/bin/pip install -q psycopg2-binary && cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     envVars:
       - key: DATABASE_URL
         fromDatabase:

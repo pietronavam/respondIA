@@ -379,10 +379,11 @@
         document.getElementById('success-name').textContent = name;
         document.getElementById('success-key').textContent = data.api_key;
       } catch (e) {
-        errEl.textContent = e.message;
+        errEl.textContent = 'Error: ' + e.message + ' — Intenta recargar la página o usa otro navegador.';
         errEl.classList.remove('hidden');
         btn.textContent = 'Crear mi cuenta →';
         btn.disabled = false;
+        console.error('Register error:', e);
       }
     }
 

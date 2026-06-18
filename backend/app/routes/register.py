@@ -1,3 +1,4 @@
+import uuid
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from ..database import create_tenant, save_setting
@@ -16,8 +17,9 @@ def register(data: RegisterForm):
     if not name:
         raise HTTPException(400, "El nombre del negocio es requerido")
 
-    # Sandbox number shared — each tenant gets isolated by api_key
-    tenant = create_tenant(name=name, phone_number=f"whatsapp:+14155238886")
+    # Each sandbox tenant gets a unique placeholder until a real number is assigned
+    placeholder = f"sandbox:{uuid.uuid4()}"
+    tenant = create_tenant(name=name, phone_number=placeholder)
     save_setting(tenant.id, "business_name", name)
 
     return {

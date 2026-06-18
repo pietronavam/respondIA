@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Depends
 from pydantic import BaseModel
 from twilio.rest import Client
 from ..auth import require_tenant

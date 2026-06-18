@@ -20,18 +20,19 @@ def api(method: str, path: str, **kwargs):
 
 def login_screen():
     st.title("🤖 RespondIA")
-    st.markdown("### Ingresa tu API Key para acceder al panel")
+    st.markdown("### Bienvenido a tu panel de control")
+    st.caption("Ingresa el código de acceso que te enviamos al registrarte.")
 
     col, _ = st.columns([1, 1])
     with col:
         key_input = st.text_input(
-            "API Key",
+            "Código de acceso",
             type="password",
-            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+            placeholder="Pega aquí tu código de acceso",
         )
-        if st.button("Conectar", type="primary", use_container_width=True):
+        if st.button("Entrar", type="primary", use_container_width=True):
             if not key_input.strip():
-                st.error("Ingresa tu API Key")
+                st.error("Ingresa tu código de acceso")
                 return
             try:
                 r = requests.get(
@@ -51,7 +52,7 @@ def login_screen():
                 st.error(f"No se pudo conectar al backend: {e}")
 
         st.divider()
-        st.caption("¿No tienes una cuenta? Contacta a RespondIA para registrar tu pyme.")
+        st.caption("¿Aún no tienes cuenta? Escríbenos por WhatsApp para registrar tu pyme gratis.")
 
 
 if "api_key" not in st.session_state:
@@ -64,7 +65,7 @@ with st.sidebar:
     st.title("🤖 RespondIA")
     cfg = st.session_state.get("business_cfg", {})
     st.markdown(f"**{cfg.get('business_name', 'Mi Negocio')}**")
-    st.caption(f"API Key: `{st.session_state.api_key[:8]}…`")
+    st.caption(f"Código: `{st.session_state.api_key[:8]}…`")
     st.divider()
     if st.button("Cerrar sesión", use_container_width=True):
         del st.session_state.api_key

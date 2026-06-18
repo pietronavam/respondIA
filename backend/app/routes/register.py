@@ -5,12 +5,10 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
-from passlib.context import CryptContext
 from ..database import create_tenant, save_setting, get_tenant_by_email
+from ..auth import hash_password
 
 router = APIRouter()
-
-pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 GMAIL_USER     = os.getenv("GMAIL_USER", "")
 GMAIL_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "")
@@ -63,7 +61,7 @@ def register(data: RegisterForm):
     if get_tenant_by_email(data.email):
         raise HTTPException(409, "Ya existe una cuenta con ese correo")
 
-    hashed = pwd_ctx.hash(data.password)
+    hashed = hash_password(data.password)
     placeholder = f"sandbox:{uuid.uuid4()}"
     tenant = create_tenant(
         name=name,

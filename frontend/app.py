@@ -6,7 +6,7 @@ API_URL = "https://respondia.onrender.com"
 
 st.set_page_config(
     page_title="RespondIA",
-    page_icon="⚡",
+    page_icon="💬",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -173,7 +173,7 @@ def login_screen():
     with col:
         st.markdown("""
         <div class="login-header">
-            <h1>⚡ RespondIA</h1>
+            <h1><span style="color:#0f172a">Respond</span><span style="color:#6366F1">IA</span></h1>
             <p>Agente de IA que atiende a tus clientes por WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
@@ -220,7 +220,7 @@ if "api_key" not in st.session_state:
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.markdown("## ⚡ RespondIA")
+    st.markdown("## <span style='color:#ffffff'>Respond</span><span style='color:#a5b4fc'>IA</span>", unsafe_allow_html=True)
     st.divider()
     cfg_side = st.session_state.get("business_cfg", {})
     biz_name = cfg_side.get("business_name") or "Mi Negocio"

@@ -57,6 +57,7 @@ class BusinessConfig(BaseModel):
     business_name: str
     hours: str
     yape_number: str = ""
+    plin_number: str = ""
     culqi_link: str = ""
 
 
@@ -65,6 +66,7 @@ def save_config(cfg: BusinessConfig, tenant: Tenant = Depends(require_tenant)):
     save_setting(tenant.id, "business_name", cfg.business_name)
     save_setting(tenant.id, "hours", cfg.hours)
     save_setting(tenant.id, "yape_number", cfg.yape_number)
+    save_setting(tenant.id, "plin_number", cfg.plin_number)
     save_setting(tenant.id, "culqi_link", cfg.culqi_link)
     return {"status": "ok"}
 
@@ -75,5 +77,6 @@ def get_config(tenant: Tenant = Depends(require_tenant)):
         "business_name": get_setting(tenant.id, "business_name", "Mi Negocio"),
         "hours": get_setting(tenant.id, "hours", "Lunes a sábado 9am-7pm"),
         "yape_number": get_setting(tenant.id, "yape_number", ""),
+        "plin_number": get_setting(tenant.id, "plin_number", ""),
         "culqi_link": get_setting(tenant.id, "culqi_link", ""),
     }

@@ -280,9 +280,15 @@ with tab_config:
     with st.container(border=True):
         st.markdown("**Métodos de pago**")
         st.caption("El bot los enviará automáticamente cuando un cliente quiera comprar.")
-        yape_input = st.text_input("Número Yape",
-                                    value=cfg_data.get("yape_number", ""),
-                                    placeholder="Ej: 987654321")
+        col_y, col_p = st.columns(2)
+        with col_y:
+            yape_input = st.text_input("Número Yape",
+                                        value=cfg_data.get("yape_number", ""),
+                                        placeholder="Ej: 987654321")
+        with col_p:
+            plin_input = st.text_input("Número Plin",
+                                        value=cfg_data.get("plin_number", ""),
+                                        placeholder="Ej: 987654321")
         culqi_input = st.text_input("Link de pago Culqi (opcional)",
                                      value=cfg_data.get("culqi_link", ""),
                                      placeholder="https://checkout.culqi.com/...")
@@ -294,6 +300,7 @@ with tab_config:
                 "business_name": biz_input,
                 "hours": hours_input,
                 "yape_number": yape_input,
+                "plin_number": plin_input,
                 "culqi_link": culqi_input,
             })
             st.session_state.business_cfg = {"business_name": biz_input, "hours": hours_input}

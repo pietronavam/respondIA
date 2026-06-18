@@ -50,11 +50,14 @@ async def get_bot_response(
     business_name = get_setting(tenant_id, "business_name", "el negocio")
     hours = get_setting(tenant_id, "hours", "Lunes a sábado 9am-7pm")
     yape_number = get_setting(tenant_id, "yape_number", "")
+    plin_number = get_setting(tenant_id, "plin_number", "")
     culqi_link = get_setting(tenant_id, "culqi_link", "")
 
     payment_lines = []
     if yape_number:
         payment_lines.append(f"- Yape: {yape_number}")
+    if plin_number:
+        payment_lines.append(f"- Plin: {plin_number}")
     if culqi_link:
         payment_lines.append(f"- Link de pago con tarjeta: {culqi_link}")
     if not payment_lines:

@@ -19,19 +19,25 @@ def _check_admin(x_admin_key: str):
 
 class TenantCreate(BaseModel):
     name: str
-    phone_number: str | None = None  # si ya tiene un número en Twilio (e.g. "+51999xxxxxx")
+    phone_number: str | None = None  # "whatsapp:+51999xxxxxx" o solo "+51999xxxxxx"
     country_code: str = "US"         # para compra automática si phone_number es None
+    skip_twilio: bool = False         # True para sandbox/pruebas sin provisionar número
 
 
 @router.post("/")
 def create_new_tenant(data: TenantCreate, x_admin_key: str = Header(...)):
     _check_admin(x_admin_key)
 
-    twilio = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     webhook_url = f"{WEBHOOK_BASE_URL}/webhook/whatsapp"
 
-    if data.phone_number:
-        # Número ya existente — solo configura el webhook
+    if data.skip_twilio and data.phone_number:
+        assigned_number = (
+            data.phone_number
+            if data.phone_number.startswith("whatsapp:")
+            else f"whatsapp:{data.phone_number}"
+        )
+    elif data.phone_number:
+        twilio = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
         raw = data.phone_number.replace("whatsapp:", "")
         numbers = twilio.incoming_phone_numbers.list(phone_number=raw, limit=1)
         if not numbers:
@@ -39,7 +45,7 @@ def create_new_tenant(data: TenantCreate, x_admin_key: str = Header(...)):
         numbers[0].update(sms_url=webhook_url, sms_method="POST")
         assigned_number = f"whatsapp:{raw}"
     else:
-        # Compra un número nuevo
+        twilio = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
         available = twilio.available_phone_numbers(data.country_code).local.list(
             sms_enabled=True, limit=1
         )

@@ -2,7 +2,7 @@ import os
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from twilio.rest import Client
-from ..database import create_tenant, list_tenants
+from ..database import create_tenant, list_tenants, save_setting
 
 router = APIRouter(prefix="/tenants")
 
@@ -59,6 +59,7 @@ def create_new_tenant(data: TenantCreate, x_admin_key: str = Header(...)):
         assigned_number = f"whatsapp:{purchased.phone_number}"
 
     tenant = create_tenant(name=data.name, phone_number=assigned_number)
+    save_setting(tenant.id, "business_name", data.name)
 
     return {
         "tenant_id": tenant.id,

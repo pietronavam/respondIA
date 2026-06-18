@@ -23,25 +23,25 @@ st.markdown("""
 
 /* Sidebar */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #312E81 0%, #1E1B4B 100%) !important;
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 60%, #0d3320 100%) !important;
 }
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] span,
 [data-testid="stSidebar"] label,
-[data-testid="stSidebar"] div {color: #C7D2FE !important;}
+[data-testid="stSidebar"] div {color: #94a3b8 !important;}
 [data-testid="stSidebar"] h1,
 [data-testid="stSidebar"] h2,
 [data-testid="stSidebar"] h3 {color: #FFFFFF !important;}
-[data-testid="stSidebar"] hr {border-color: rgba(255,255,255,0.12) !important;}
+[data-testid="stSidebar"] hr {border-color: rgba(255,255,255,0.10) !important;}
 [data-testid="stSidebar"] .stButton > button {
     width: 100%;
-    background: rgba(255,255,255,0.08) !important;
-    color: #E0E7FF !important;
-    border: 1px solid rgba(255,255,255,0.18) !important;
+    background: rgba(37,211,102,0.10) !important;
+    color: #25D366 !important;
+    border: 1px solid rgba(37,211,102,0.25) !important;
     border-radius: 8px !important;
 }
 [data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(255,255,255,0.16) !important;
+    background: rgba(37,211,102,0.20) !important;
 }
 
 /* Metrics */
@@ -55,7 +55,7 @@ st.markdown("""
 [data-testid="stMetricValue"] {
     font-size: 1.9rem !important;
     font-weight: 700 !important;
-    color: #6366F1 !important;
+    color: #25D366 !important;
 }
 [data-testid="stMetricLabel"] {
     font-size: 0.75rem !important;
@@ -83,8 +83,8 @@ st.markdown("""
     margin-bottom: -2px;
 }
 .stTabs [aria-selected="true"] {
-    color: #6366F1 !important;
-    border-bottom-color: #6366F1 !important;
+    color: #25D366 !important;
+    border-bottom-color: #25D366 !important;
     background: transparent !important;
 }
 
@@ -96,8 +96,8 @@ st.markdown("""
 }
 .stTextInput > div > div > input:focus,
 .stTextArea > div > div > textarea:focus {
-    border-color: #6366F1 !important;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.1) !important;
+    border-color: #25D366 !important;
+    box-shadow: 0 0 0 3px rgba(37,211,102,0.12) !important;
 }
 
 /* Buttons */
@@ -105,7 +105,7 @@ st.markdown("""
 
 /* Login */
 .login-header {text-align: center; padding: 1rem 0 1.5rem;}
-.login-header h1 {font-size: 2.2rem; font-weight: 800; color: #312E81; letter-spacing: -0.02em; margin: 0;}
+.login-header h1 {font-size: 2.2rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; margin: 0;}
 .login-header p {color: #64748B; margin-top: 0.4rem; font-size: 0.95rem;}
 
 /* Order table */
@@ -173,7 +173,7 @@ def login_screen():
     with col:
         st.markdown("""
         <div class="login-header">
-            <h1><span style="color:#0f172a">Respond</span><span style="color:#6366F1">IA</span></h1>
+            <h1><span style="color:#0f172a">Respond</span><span style="color:#25D366">IA</span></h1>
             <p>Agente de IA que atiende a tus clientes por WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
@@ -220,7 +220,7 @@ if "api_key" not in st.session_state:
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.markdown("## <span style='color:#ffffff'>Respond</span><span style='color:#a5b4fc'>IA</span>", unsafe_allow_html=True)
+    st.markdown("## <span style='color:#ffffff'>Respond</span><span style='color:#25D366'>IA</span>", unsafe_allow_html=True)
     st.divider()
     cfg_side = st.session_state.get("business_cfg", {})
     biz_name = cfg_side.get("business_name") or "Mi Negocio"

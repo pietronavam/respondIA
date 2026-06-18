@@ -4,7 +4,9 @@
 
 **Curso:** Data Science con Python 2026-I — Universidad del Pacífico  
 **Autor:** Pietro Marcelo Nava Montenegro  
-**Demo:** _[URL del deploy — completar]_
+**Landing:** [pietronavam.github.io/respondIA](https://pietronavam.github.io/respondIA)  
+**Panel:** [respond-ia.streamlit.app](https://respond-ia.streamlit.app/)  
+**Backend API:** [respondia.onrender.com](https://respondia.onrender.com)
 
 ---
 
@@ -18,22 +20,26 @@ El 95.6% de las pymes peruanas formales no vende por e-commerce y muchas gestion
 
 RespondIA conecta el WhatsApp del negocio con un agente de IA entrenado en el catálogo propio. En 5 minutos el dueño sube su lista de precios y el bot empieza a responder clientes automáticamente.
 
-## Demo
-
-**URL pública:** _[completar tras el deploy]_  
-**Video demo (2 min):** _[completar]_
+## Demo en vivo
 
 Para probar el bot en WhatsApp:
-1. Envía `join <código-sandbox>` al número `+1 415 523 8886`
-2. Escríbele al bot como si fueras un cliente
+1. Envía `join protection-memory` al número **+1 415 523 8886** (WhatsApp)
+2. Escríbele al bot como si fueras un cliente (ej: "¿tienen polos talla M?")
+3. Verifica la conversación en el [panel de control](https://respond-ia.streamlit.app/)
+
+**Video demo (2 min):** _[completar]_
 
 ## Herramientas del curso utilizadas
 
 | Herramienta | Uso en el proyecto | Lectura |
 |---|---|---|
+| **DeepSeek API** | LLM que genera respuestas inteligentes al cliente (compatible OpenAI SDK) | 12-14 |
 | **PaddleOCR** | Extrae texto de PDFs/imágenes del catálogo | 14 |
-| **Claude API (Anthropic)** | Genera respuestas inteligentes al cliente | 12-14 |
-| **Whisper** | Transcribe notas de voz de WhatsApp en español | - |
+| **Whisper (OpenAI)** | Transcribe notas de voz de WhatsApp en español | — |
+| **FastAPI** | Backend REST + webhook Twilio | 8-10 |
+| **Streamlit** | Dashboard de control para el dueño del negocio | 11 |
+| **SQLite** | Historial de conversaciones por cliente | 9 |
+| **Twilio** | Integración con WhatsApp Sandbox | — |
 
 ## Arquitectura
 
@@ -42,30 +48,33 @@ Para probar el bot en WhatsApp:
       │ mensaje texto / audio
       ▼
 [Twilio WhatsApp Sandbox]
-      │ HTTP POST webhook
+      │ HTTP POST /webhook/whatsapp
       ▼
 [FastAPI Backend — Render]
       ├── audio? → Whisper → transcripción
-      ├── busca contexto en catálogo del negocio
-      └── Claude Haiku → genera respuesta
+      ├── recupera historial de SQLite
+      ├── carga catálogo del negocio
+      └── DeepSeek API → genera respuesta
       │
       ▼
-[Respuesta → Twilio → Cliente]
+[Respuesta → Twilio → Cliente WhatsApp]
 
 [Streamlit Dashboard — Streamlit Cloud]
-      └── Dueño sube PDF → PaddleOCR → catálogo
+      ├── Catálogo: sube PDF → PaddleOCR / texto manual
+      ├── Configuración: nombre negocio, horario, webhook URL
+      └── Conversaciones: historial en tiempo real
 ```
 
 ## Cómo correr localmente
 
 ```bash
 # 1. Clonar repo
-git clone https://github.com/tu-usuario/respondIA.git
+git clone https://github.com/pietronavam/respondIA.git
 cd respondIA
 
 # 2. Configurar variables de entorno
 cp .env.example .env
-# Editar .env con tus keys
+# Editar .env con tus keys (ver sección Variables de entorno)
 
 # 3. Backend
 cd backend
@@ -78,10 +87,22 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+## Variables de entorno
+
+```env
+DEEPSEEK_API_KEY=...
+TWILIO_ACCOUNT_SID=...
+TWILIO_AUTH_TOKEN=...
+TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
+```
+
 ## Deploy
 
-- **Backend:** Render.com (Web Service, Python, rootDir=backend)
-- **Frontend:** Streamlit Community Cloud (branch main, file frontend/app.py)
+| Servicio | Plataforma | Config |
+|---|---|---|
+| Backend API | Render.com | Web Service · Python · rootDir=`backend` |
+| Dashboard | Streamlit Community Cloud | branch `main` · file `frontend/app.py` |
+| Landing page | GitHub Pages | branch `main` · folder `/docs` |
 
 ## Estructura del repositorio
 
@@ -89,20 +110,21 @@ streamlit run app.py
 respondIA/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py           # FastAPI app
-│   │   ├── database.py       # SQLite
+│   │   ├── main.py                  # FastAPI app
+│   │   ├── database.py              # SQLite — historial + settings
 │   │   ├── routes/
-│   │   │   ├── webhook.py    # Twilio WhatsApp webhook
-│   │   │   ├── catalog.py    # Upload y gestión de catálogo
-│   │   │   └── conversations.py
+│   │   │   ├── webhook.py           # Twilio WhatsApp webhook
+│   │   │   ├── catalog.py           # Upload y gestión de catálogo
+│   │   │   └── conversations.py     # Historial de chats
 │   │   └── services/
-│   │       ├── claude_service.py   # Claude API
-│   │       ├── ocr.py              # PaddleOCR + PyMuPDF
-│   │       └── whisper_service.py  # Whisper transcripción
+│   │       ├── claude_service.py    # DeepSeek API (OpenAI-compatible)
+│   │       ├── ocr.py               # PaddleOCR + PyMuPDF
+│   │       └── whisper_service.py   # Whisper transcripción de audio
 │   └── requirements.txt
 ├── frontend/
-│   └── app.py                # Streamlit dashboard
-├── docs/                     # Paper, pitch deck, diagramas
+│   └── app.py                       # Streamlit dashboard
+├── docs/
+│   └── index.html                   # Landing page (GitHub Pages)
 ├── data/
 ├── .env.example
 └── render.yaml

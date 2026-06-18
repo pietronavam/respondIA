@@ -73,10 +73,15 @@ def create_new_tenant(data: TenantCreate, x_admin_key: str = Header(...)):
 @router.delete("/by-email")
 def delete_tenant_by_email(email: str, x_admin_key: str = Header(...)):
     _check_admin(x_admin_key)
+    from ..database import TenantSetting, Message, Order
     with SessionLocal() as db:
         tenant = db.query(TenantModel).filter(TenantModel.email == email).first()
         if not tenant:
             raise HTTPException(404, "Tenant no encontrado")
+        tid = tenant.id
+        db.query(Order).filter(Order.tenant_id == tid).delete()
+        db.query(Message).filter(Message.tenant_id == tid).delete()
+        db.query(TenantSetting).filter(TenantSetting.tenant_id == tid).delete()
         db.delete(tenant)
         db.commit()
     return {"deleted": email}

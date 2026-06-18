@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Header, Depends
 from pydantic import BaseModel
 from twilio.rest import Client
 from ..auth import require_tenant
-from ..database import create_tenant, list_tenants, save_setting, Tenant as TenantModel
+from ..database import create_tenant, list_tenants, save_setting, Tenant as TenantModel, SessionLocal
 
 router = APIRouter(prefix="/tenants")
 
@@ -68,6 +68,18 @@ def create_new_tenant(data: TenantCreate, x_admin_key: str = Header(...)):
         "phone_number": assigned_number,
         "note": "Activa WhatsApp Business para este número desde Twilio Console → Messaging → Senders.",
     }
+
+
+@router.delete("/by-email")
+def delete_tenant_by_email(email: str, x_admin_key: str = Header(...)):
+    _check_admin(x_admin_key)
+    with SessionLocal() as db:
+        tenant = db.query(TenantModel).filter(TenantModel.email == email).first()
+        if not tenant:
+            raise HTTPException(404, "Tenant no encontrado")
+        db.delete(tenant)
+        db.commit()
+    return {"deleted": email}
 
 
 @router.get("/me")

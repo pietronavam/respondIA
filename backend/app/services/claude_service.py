@@ -87,8 +87,8 @@ async def get_bot_response(
             max_tokens=400,
         )
         raw = response.choices[0].message.content or ""
-    except Exception:
-        return "En este momento no puedo responder. Por favor intenta en unos minutos.", None
+    except Exception as e:
+        return f"[ERROR DeepSeek: {e}]", None
 
     order_data = None
     match = ORDER_RE.search(raw)

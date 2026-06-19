@@ -72,27 +72,24 @@ async def whatsapp_webhook(
     )
 
     if not order_data:
-        # Fallback: detect payment instruction in bot response
         import re as _re
-        price_m = _re.search(r'S/(\d+)', bot_reply)
+        price_matches = _re.findall(r'S/(\d+)', bot_reply)
         has_payment = any(kw in bot_reply.lower() for kw in ["yape", "plin", "paga", "comprobante"])
         has_confirm = any(kw in bot_reply.lower() for kw in ["pedido", "confirm", "procesar"])
-        if price_m and has_payment and has_confirm and not get_pending_order(tenant.id, From):
-            order_data = {"items": "Pedido", "total": int(price_m.group(1))}
+        if price_matches and has_payment and has_confirm and not get_pending_order(tenant.id, From):
+            total_val = max(int(p) for p in price_matches)
+            order_data = {"items": "Pedido", "total": total_val}
 
     if order_data:
-        try:
-            total = int(float(str(order_data.get("total", 0))))
-            items = str(order_data.get("items", "Pedido"))
-            order = create_order(
-                tenant_id=tenant.id,
-                customer=From,
-                items=items,
-                total=total,
-            )
-            bot_reply = f"{bot_reply}\n\n📦 Código de pedido: *{order.code}*"
-        except Exception:
-            pass
+        total = int(float(str(order_data.get("total", 0))))
+        items = str(order_data.get("items", "Pedido"))
+        order = create_order(
+            tenant_id=tenant.id,
+            customer=From,
+            items=items,
+            total=total,
+        )
+        bot_reply = f"{bot_reply}\n\n📦 Código de pedido: *{order.code}*"
 
     save_message(tenant.id, From, user_message, bot_reply)
 

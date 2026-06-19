@@ -81,15 +81,20 @@ async def whatsapp_webhook(
             order_data = {"items": "Pedido", "total": total_val}
 
     if order_data:
-        total = int(float(str(order_data.get("total", 0))))
-        items = str(order_data.get("items", "Pedido"))
-        order = create_order(
-            tenant_id=tenant.id,
-            customer=From,
-            items=items,
-            total=total,
-        )
-        bot_reply = f"{bot_reply}\n\n📦 Código de pedido: *{order.code}*"
+        try:
+            total = int(float(str(order_data.get("total", 0))))
+            items = str(order_data.get("items", "Pedido"))
+            order = create_order(
+                tenant_id=tenant.id,
+                customer=From,
+                items=items,
+                total=total,
+            )
+            bot_reply = f"{bot_reply}\n\n📦 Código de pedido: *{order.code}*"
+        except Exception as e:
+            import traceback
+            bot_reply = f"{bot_reply}\n\n[DEBUG] Order error: {e}"
+            print(f"[ORDER ERROR] {e}\n{traceback.format_exc()}")
 
     save_message(tenant.id, From, user_message, bot_reply)
 

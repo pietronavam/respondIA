@@ -66,13 +66,13 @@ async def get_bot_response(
         payment_lines.append("- (Sin método de pago configurado aún)")
     payment_info = "\n".join(payment_lines)
 
-    system = SYSTEM_TEMPLATE.format(
-        business_name=business_name,
-        catalog=catalog,
-        hours=hours,
-        payment_info=payment_info,
-        items_placeholder="ITEMS_DEL_PEDIDO",
-        total_placeholder=0,
+    system = (SYSTEM_TEMPLATE
+        .replace("{business_name}", business_name)
+        .replace("{catalog}", catalog)
+        .replace("{hours}", hours)
+        .replace("{payment_info}", payment_info)
+        .replace("{items_placeholder}", "ITEMS_DEL_PEDIDO")
+        .replace("{total_placeholder}", "0")
     )
 
     history = get_history(tenant_id, customer_id, limit=8)
@@ -80,13 +80,15 @@ async def get_bot_response(
         {"role": "user", "content": user_message}
     ]
 
-    response = client.chat.completions.create(
-        model="deepseek-chat",
-        messages=messages,
-        max_tokens=400,
-    )
-
-    raw = response.choices[0].message.content or ""
+    try:
+        response = client.chat.completions.create(
+            model="deepseek-chat",
+            messages=messages,
+            max_tokens=400,
+        )
+        raw = response.choices[0].message.content or ""
+    except Exception:
+        return "En este momento no puedo responder. Por favor intenta en unos minutos.", None
 
     order_data = None
     match = ORDER_RE.search(raw)

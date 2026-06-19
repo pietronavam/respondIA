@@ -33,7 +33,7 @@ Cuando un cliente confirme qué producto(s) quiere comprar:
 2. En ESA MISMA respuesta envía las instrucciones de pago (Yape/Plin/link disponibles)
 3. Pide la foto del comprobante de pago
 4. OBLIGATORIO: al FINAL de esa misma respuesta agrega EXACTAMENTE esta línea (sin mostrarla al cliente):
-   [PEDIDO:{{"items":"{items_placeholder}","total":{total_placeholder}}}]
+   [PEDIDO:{"items":"{items_placeholder}","total":{total_placeholder}}]
    - items = descripción breve del pedido (ej: "1 blusa floreada talla L negro")
    - total = monto total en soles como número entero (ej: 55)
    - NO omitas este marcador bajo ninguna circunstancia cuando confirmes un pedido

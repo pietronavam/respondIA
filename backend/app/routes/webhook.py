@@ -21,21 +21,6 @@ async def whatsapp_webhook(
     MediaUrl0: str = Form(default=None),
     MediaContentType0: str = Form(default=None),
 ):
-    try:
-        return await _handle_webhook(Body, From, To, NumMedia, MediaUrl0, MediaContentType0)
-    except Exception as e:
-        import traceback
-        err = traceback.format_exc()
-        print(f"[WEBHOOK 500] {e}\n{err}")
-        resp = MessagingResponse()
-        resp.message(f"[DEBUG 500] {type(e).__name__}: {str(e)[:200]}")
-        return Response(content=str(resp), media_type="application/xml")
-
-
-async def _handle_webhook(
-    Body: str, From: str, To: str, NumMedia: int,
-    MediaUrl0: str, MediaContentType0: str,
-):
     tenant = get_tenant_by_phone(To)
     if not tenant:
         return Response(content=str(MessagingResponse()), media_type="application/xml")
@@ -108,7 +93,6 @@ async def _handle_webhook(
             bot_reply = f"{bot_reply}\n\n📦 Código de pedido: *{order.code}*"
         except Exception as e:
             import traceback
-            bot_reply = f"{bot_reply}\n\n[DEBUG] Order error: {e}"
             print(f"[ORDER ERROR] {e}\n{traceback.format_exc()}")
 
     save_message(tenant.id, From, user_message, bot_reply)

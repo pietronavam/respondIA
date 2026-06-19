@@ -180,7 +180,8 @@ def save_setting(tenant_id: str, key: str, value: str):
 
 def _next_order_code(db, tenant_id: str) -> str:
     count = db.query(Order).filter(Order.tenant_id == tenant_id).count()
-    return f"#{str(count + 1).zfill(4)}"
+    suffix = uuid.uuid4().hex[:4]
+    return f"#{str(count + 1).zfill(4)}-{suffix}"
 
 
 def create_order(tenant_id: str, customer: str, items: str, total: int) -> Order:

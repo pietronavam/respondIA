@@ -75,7 +75,11 @@ async def get_bot_response(
         .replace("{total_placeholder}", "0")
     )
 
-    history = get_history(tenant_id, customer_id, limit=8)
+    raw_history = get_history(tenant_id, customer_id, limit=8)
+    history = [
+        {**msg, "role": "assistant"} if msg.get("role") == "owner" else msg
+        for msg in raw_history
+    ]
     messages = [{"role": "system", "content": system}] + history + [
         {"role": "user", "content": user_message}
     ]
@@ -87,8 +91,8 @@ async def get_bot_response(
             max_tokens=400,
         )
         raw = response.choices[0].message.content or ""
-    except Exception as e:
-        return f"[ERROR DeepSeek: {e}]", None
+    except Exception:
+        return "En este momento no puedo responder. Por favor intenta en unos minutos.", None
 
     order_data = None
     match = ORDER_RE.search(raw)

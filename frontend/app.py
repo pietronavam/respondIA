@@ -19,14 +19,14 @@ st.markdown("""
 header {visibility: visible;}
 header [data-testid="stToolbar"] {visibility: hidden;}
 
-/* Sidebar collapse button (« arrows inside the sidebar) → green */
+/* Sidebar collapse arrows → green */
 [data-testid="stSidebarCollapseButton"] button {
     color: #25D366 !important;
     background: transparent !important;
 }
 [data-testid="stSidebarCollapseButton"] button svg {
     fill: #25D366 !important;
-    color: #25D366 !important;
+    stroke: #25D366 !important;
 }
 
 
@@ -187,8 +187,10 @@ def login_screen():
     with col:
         st.markdown("""
         <div class="login-header">
-            <h1><span style="color:#0f172a">Respond</span><span style="color:#25D366">IA</span></h1>
-            <p>Agente de IA que atiende a tus clientes por WhatsApp</p>
+          <h1 style='letter-spacing:-0.03em;font-family:Inter,sans-serif'>
+            <span style="color:#0f172a;font-weight:800">Respond</span><span style="color:#25D366;font-weight:800">IA</span>
+          </h1>
+          <p>Agente de IA que atiende a tus clientes por WhatsApp</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -235,7 +237,11 @@ if "api_key" not in st.session_state:
 # ── SIDEBAR ───────────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.markdown("## <span style='color:#ffffff'>Respond</span><span style='color:#25D366'>IA</span>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='padding:12px 0 8px 0'>
+      <span style='font-size:1.55rem;font-weight:800;letter-spacing:-0.03em;color:#ffffff;font-family:Inter,sans-serif'>Respond</span><span style='font-size:1.55rem;font-weight:800;letter-spacing:-0.03em;color:#25D366;font-family:Inter,sans-serif'>IA</span>
+    </div>
+    """, unsafe_allow_html=True)
     st.divider()
     cfg_side = st.session_state.get("business_cfg", {})
     biz_name = cfg_side.get("business_name") or "Mi Negocio"
@@ -303,32 +309,35 @@ with st.sidebar:
 components.html("""
 <script>
 (function() {
+  var savedTop = '100px';
+  var savedH   = '32px';
+
   function init() {
     var doc = window.parent.document;
     if (doc.getElementById('ria-toggle')) return;
 
     var btn = doc.createElement('div');
     btn.id = 'ria-toggle';
-    btn.title = 'Abrir/cerrar menú';
+    btn.title = 'Abrir menú';
     btn.innerHTML = '&#8250;';
     Object.assign(btn.style, {
-      position:     'fixed',
-      top:          '3.5rem',
-      left:         '0',
-      zIndex:       '999999',
-      background:   '#0f172a',
-      color:        '#25D366',
-      width:        '1.8rem',
-      height:       '2.5rem',
-      display:      'flex',
-      alignItems:   'center',
+      position:       'fixed',
+      top:            savedTop,
+      left:           '0',
+      zIndex:         '999999',
+      background:     '#0f172a',
+      color:          '#25D366',
+      width:          '1.6rem',
+      height:         savedH,
+      display:        'none',
+      alignItems:     'center',
       justifyContent: 'center',
-      cursor:       'pointer',
-      borderRadius: '0 8px 8px 0',
-      fontSize:     '1.4rem',
-      fontWeight:   'bold',
-      boxShadow:    '2px 0 8px rgba(0,0,0,0.5)',
-      userSelect:   'none',
+      cursor:         'pointer',
+      borderRadius:   '0 6px 6px 0',
+      fontSize:       '1.3rem',
+      fontWeight:     'bold',
+      boxShadow:      '2px 0 8px rgba(0,0,0,0.5)',
+      userSelect:     'none',
     });
 
     btn.onclick = function() {
@@ -340,8 +349,18 @@ components.html("""
     doc.body.appendChild(btn);
 
     function update() {
-      var sb = doc.querySelector('[data-testid="stSidebar"]');
+      var sb         = doc.querySelector('[data-testid="stSidebar"]');
+      var collapseBtn = doc.querySelector('[data-testid="stSidebarCollapseButton"] button');
       var open = sb && sb.getBoundingClientRect().width > 50;
+
+      if (collapseBtn) {
+        var r = collapseBtn.getBoundingClientRect();
+        savedTop = r.top + 'px';
+        savedH   = Math.max(r.height, 28) + 'px';
+      }
+
+      btn.style.top    = savedTop;
+      btn.style.height = savedH;
       btn.style.display = open ? 'none' : 'flex';
     }
     update();

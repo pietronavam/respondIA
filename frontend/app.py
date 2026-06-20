@@ -17,6 +17,7 @@ st.markdown("""
 #MainMenu, footer {visibility: hidden;}
 header {visibility: visible;}
 header [data-testid="stToolbar"] {visibility: hidden;}
+[data-testid="collapsedControl"] {visibility: visible !important; display: flex !important;}
 
 .main .block-container {
     padding: 2rem 2.5rem;

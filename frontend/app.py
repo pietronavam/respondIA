@@ -1,5 +1,6 @@
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 
 API_URL = "https://respondia.onrender.com"
@@ -28,22 +29,6 @@ header [data-testid="stToolbar"] {visibility: hidden;}
     color: #25D366 !important;
 }
 
-/* Collapsed control (» button when sidebar is hidden) → dark bg + green arrow */
-[data-testid="collapsedControl"] {
-    visibility: visible !important;
-    display: flex !important;
-    background: #0f172a !important;
-    border-radius: 0 8px 8px 0 !important;
-    padding: 4px 2px !important;
-}
-[data-testid="collapsedControl"] button {
-    color: #25D366 !important;
-    background: transparent !important;
-}
-[data-testid="collapsedControl"] svg {
-    fill: #25D366 !important;
-    color: #25D366 !important;
-}
 
 .main .block-container {
     padding: 2rem 2.5rem;
@@ -313,6 +298,62 @@ with st.sidebar:
         st.session_state.pop("tenant_info", None)
         st.rerun()
 
+
+# ── CUSTOM SIDEBAR TOGGLE ─────────────────────────────────────────────────────
+components.html("""
+<script>
+(function() {
+  function init() {
+    var doc = window.parent.document;
+    if (doc.getElementById('ria-toggle')) return;
+
+    var btn = doc.createElement('div');
+    btn.id = 'ria-toggle';
+    btn.title = 'Abrir/cerrar menú';
+    btn.innerHTML = '&#8250;';
+    Object.assign(btn.style, {
+      position:     'fixed',
+      top:          '3.5rem',
+      left:         '0',
+      zIndex:       '999999',
+      background:   '#0f172a',
+      color:        '#25D366',
+      width:        '1.8rem',
+      height:       '2.5rem',
+      display:      'flex',
+      alignItems:   'center',
+      justifyContent: 'center',
+      cursor:       'pointer',
+      borderRadius: '0 8px 8px 0',
+      fontSize:     '1.4rem',
+      fontWeight:   'bold',
+      boxShadow:    '2px 0 8px rgba(0,0,0,0.5)',
+      userSelect:   'none',
+    });
+
+    btn.onclick = function() {
+      var trigger = doc.querySelector('[data-testid="collapsedControl"] button')
+                 || doc.querySelector('[data-testid="stSidebarCollapseButton"] button');
+      if (trigger) trigger.click();
+    };
+
+    doc.body.appendChild(btn);
+
+    function update() {
+      var sb = doc.querySelector('[data-testid="stSidebar"]');
+      var open = sb && sb.getBoundingClientRect().width > 50;
+      btn.style.display = open ? 'none' : 'flex';
+    }
+    update();
+    setInterval(update, 300);
+  }
+
+  setTimeout(init, 200);
+  setTimeout(init, 800);
+  setTimeout(init, 2000);
+})();
+</script>
+""", height=0)
 
 # ── STATS ─────────────────────────────────────────────────────────────────────
 

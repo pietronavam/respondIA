@@ -1,5 +1,6 @@
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 
 API_URL = "https://respondia.onrender.com"
@@ -288,6 +289,17 @@ with st.sidebar:
         st.rerun()
 
 
+# ── SIDEBAR TOGGLE ────────────────────────────────────────────────────────────
+
+if st.button("☰  Mi negocio", help="Abrir/cerrar panel lateral"):
+    components.html("""
+    <script>
+    const btn = window.parent.document.querySelector('[data-testid="collapsedControl"]')
+             || window.parent.document.querySelector('[data-testid="stSidebarCollapseButton"] button');
+    if (btn) btn.click();
+    </script>
+    """, height=0, width=0)
+
 # ── STATS ─────────────────────────────────────────────────────────────────────
 
 try:
@@ -413,6 +425,22 @@ with tab_config:
         st.markdown("**Estado del bot**")
         st.info("Webhook activo → `https://respondia.onrender.com/webhook/whatsapp`", icon="✅")
         st.caption("Tu bot responde automáticamente en el número asignado a tu cuenta.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("**Link de WhatsApp de tu negocio**")
+        st.caption("Comparte este link en tu Instagram, web o tarjeta. Tus clientes solo tocan y el bot los atiende.")
+        _info = st.session_state.get("tenant_info", {})
+        _slug = _info.get("slug") or ""
+        _phone = _info.get("phone_number", "")
+        if _phone and not _phone.startswith("sandbox:"):
+            _digits = _phone.replace("whatsapp:", "").replace("+", "").replace(" ", "")
+            _wa = f"https://wa.me/{_digits}"
+        else:
+            _wa = f"https://wa.me/14155238886?text={_slug}" if _slug else "https://wa.me/14155238886"
+        st.code(_wa, language=None)
+        if _slug and _phone.startswith("sandbox:"):
+            st.caption(f"Código único: **{_slug}**  ·  Plan Pro incluye número exclusivo sin código.")
 
 # ── PEDIDOS ───────────────────────────────────────────────────────────────────
 with tab_orders:

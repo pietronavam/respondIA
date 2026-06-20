@@ -19,17 +19,6 @@ st.markdown("""
 header {visibility: visible;}
 header [data-testid="stToolbar"] {visibility: hidden;}
 
-/* Sidebar collapse arrows → green */
-[data-testid="stSidebarCollapseButton"] button {
-    color: #25D366 !important;
-    background: transparent !important;
-}
-[data-testid="stSidebarCollapseButton"] button svg {
-    fill: #25D366 !important;
-    stroke: #25D366 !important;
-}
-
-
 .main .block-container {
     padding: 2rem 2.5rem;
     max-width: 1050px;
@@ -40,12 +29,15 @@ header [data-testid="stToolbar"] {visibility: hidden;}
     background: linear-gradient(180deg, #0f172a 0%, #1e293b 60%, #0d3320 100%) !important;
 }
 [data-testid="stSidebar"] p,
-[data-testid="stSidebar"] span,
 [data-testid="stSidebar"] label,
-[data-testid="stSidebar"] div {color: #94a3b8 !important;}
+[data-testid="stSidebar"] small,
+[data-testid="stSidebar"] .stCaption {color: #94a3b8 !important;}
 [data-testid="stSidebar"] h1,
 [data-testid="stSidebar"] h2,
 [data-testid="stSidebar"] h3 {color: #FFFFFF !important;}
+/* Logo colors — must override blanket rules */
+[data-testid="stSidebar"] .ria-w {color: #ffffff !important;}
+[data-testid="stSidebar"] .ria-g {color: #25D366 !important;}
 [data-testid="stSidebar"] hr {border-color: rgba(255,255,255,0.10) !important;}
 [data-testid="stSidebar"] .stButton > button {
     width: 100%;
@@ -187,7 +179,7 @@ def login_screen():
     with col:
         st.markdown("""
         <div class="login-header">
-          <h1 style='letter-spacing:-0.03em;font-family:Inter,sans-serif'>
+          <h1 style='letter-spacing:-0.03em;font-family:Inter,sans-serif;color:inherit'>
             <span style="color:#0f172a;font-weight:800">Respond</span><span style="color:#25D366;font-weight:800">IA</span>
           </h1>
           <p>Agente de IA que atiende a tus clientes por WhatsApp</p>
@@ -238,8 +230,8 @@ if "api_key" not in st.session_state:
 
 with st.sidebar:
     st.markdown("""
-    <div style='padding:12px 0 8px 0'>
-      <span style='font-size:1.55rem;font-weight:800;letter-spacing:-0.03em;color:#ffffff;font-family:Inter,sans-serif'>Respond</span><span style='font-size:1.55rem;font-weight:800;letter-spacing:-0.03em;color:#25D366;font-family:Inter,sans-serif'>IA</span>
+    <div style='padding:12px 0 8px 0;line-height:1'>
+      <span class='ria-w' style='font-size:1.55rem;font-weight:800;letter-spacing:-0.03em;font-family:Inter,sans-serif'>Respond</span><span class='ria-g' style='font-size:1.55rem;font-weight:800;letter-spacing:-0.03em;font-family:Inter,sans-serif'>IA</span>
     </div>
     """, unsafe_allow_html=True)
     st.divider()
@@ -348,6 +340,19 @@ components.html("""
 
     doc.body.appendChild(btn);
 
+    function colorArrows() {
+      var cb = doc.querySelector('[data-testid="stSidebarCollapseButton"] button');
+      if (cb) {
+        cb.style.color = '#25D366';
+        cb.querySelectorAll('svg, svg path, svg polyline, svg line').forEach(function(el) {
+          el.style.fill   = '#25D366';
+          el.style.stroke = '#25D366';
+          el.setAttribute('fill',   '#25D366');
+          el.setAttribute('stroke', '#25D366');
+        });
+      }
+    }
+
     function update() {
       var sb         = doc.querySelector('[data-testid="stSidebar"]');
       var collapseBtn = doc.querySelector('[data-testid="stSidebarCollapseButton"] button');
@@ -362,6 +367,7 @@ components.html("""
       btn.style.top    = savedTop;
       btn.style.height = savedH;
       btn.style.display = open ? 'none' : 'flex';
+      colorArrows();
     }
     update();
     setInterval(update, 300);

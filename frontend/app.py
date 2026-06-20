@@ -180,31 +180,32 @@ def login_screen():
         </div>
         """, unsafe_allow_html=True)
 
-        with st.container(border=True):
+        with st.form("login_form"):
             email_input = st.text_input("Correo electrónico", placeholder="tucorreo@gmail.com")
             pass_input  = st.text_input("Contraseña", type="password", placeholder="••••••••")
-            if st.button("Entrar →", type="primary", use_container_width=True):
+            submitted   = st.form_submit_button("Entrar →", type="primary", use_container_width=True)
+            if submitted:
                 if not email_input.strip() or not pass_input:
                     st.error("Ingresa tu correo y contraseña")
-                    return
-                with st.spinner("Verificando..."):
-                    try:
-                        r = requests.post(
-                            f"{API_URL}/login",
-                            json={"email": email_input.strip(), "password": pass_input},
-                            timeout=10,
-                        )
-                        if r.status_code == 200:
-                            data = r.json()
-                            st.session_state.api_key = data["api_key"]
-                            st.session_state.business_cfg = {"business_name": data["business_name"]}
-                            st.rerun()
-                        elif r.status_code == 401:
-                            st.error("Correo o contraseña incorrectos")
-                        else:
-                            st.error(f"Error al conectar ({r.status_code})")
-                    except Exception as e:
-                        st.error(f"No se pudo conectar: {e}")
+                else:
+                    with st.spinner("Verificando..."):
+                        try:
+                            r = requests.post(
+                                f"{API_URL}/login",
+                                json={"email": email_input.strip(), "password": pass_input},
+                                timeout=10,
+                            )
+                            if r.status_code == 200:
+                                data = r.json()
+                                st.session_state.api_key = data["api_key"]
+                                st.session_state.business_cfg = {"business_name": data["business_name"]}
+                                st.rerun()
+                            elif r.status_code == 401:
+                                st.error("Correo o contraseña incorrectos")
+                            else:
+                                st.error(f"Error al conectar ({r.status_code})")
+                        except Exception as e:
+                            st.error(f"No se pudo conectar: {e}")
 
         st.markdown(
             "<p style='text-align:center;color:#94A3B8;font-size:0.8rem;margin-top:1rem'>"

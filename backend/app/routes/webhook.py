@@ -3,7 +3,11 @@ from fastapi import APIRouter, Form, Response
 from twilio.twiml.messaging_response import MessagingResponse
 from ..services.claude_service import get_bot_response
 from ..services.whisper_service import transcribe_audio_url
-from ..database import save_message, get_tenant_by_phone, create_order, get_pending_order, mark_order_paid, get_setting
+from ..database import (
+    save_message, get_tenant_by_phone, get_tenant_by_slug, get_tenant_by_id,
+    get_customer_session, upsert_customer_session,
+    create_order, get_pending_order, mark_order_paid, get_setting,
+)
 from ..services.vision_service import verify_payment_screenshot
 
 router = APIRouter()
@@ -21,9 +25,41 @@ async def whatsapp_webhook(
     MediaUrl0: str = Form(default=None),
     MediaContentType0: str = Form(default=None),
 ):
+    # Routing tier 1: real WhatsApp number (production path)
     tenant = get_tenant_by_phone(To)
+
+    # Routing tier 2: sandbox — keyword takes priority (allows switching tenants)
     if not tenant:
-        return Response(content=str(MessagingResponse()), media_type="application/xml")
+        keyword = Body.strip().upper()
+        kw_tenant = get_tenant_by_slug(keyword) if keyword else None
+        if kw_tenant:
+            upsert_customer_session(From, kw_tenant.id)
+            biz_name = get_setting(kw_tenant.id, "business_name") or kw_tenant.name
+            hours = get_setting(kw_tenant.id, "hours") or ""
+            welcome = (
+                f"¡Hola! Soy el asistente virtual de *{biz_name}*. 😊\n"
+                f"¿En qué te puedo ayudar hoy?"
+            )
+            if hours:
+                welcome += f"\n\n🕐 Atendemos: {hours}"
+            save_message(kw_tenant.id, From, keyword, welcome)
+            resp = MessagingResponse()
+            resp.message(welcome)
+            return Response(content=str(resp), media_type="application/xml")
+
+    # Routing tier 3: sandbox — resume existing session
+    if not tenant:
+        session = get_customer_session(From)
+        if session:
+            tenant = get_tenant_by_id(session.tenant_id)
+
+    if not tenant:
+        resp = MessagingResponse()
+        resp.message(
+            "Hola 👋 Para chatear con un negocio, envía su *código único*.\n"
+            "El negocio debe compartirte ese código."
+        )
+        return Response(content=str(resp), media_type="application/xml")
 
     is_image = NumMedia > 0 and MediaContentType0 and "image" in MediaContentType0
 

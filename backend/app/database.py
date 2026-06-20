@@ -1,5 +1,7 @@
 import os
+import re
 import uuid
+import unicodedata
 from sqlalchemy import create_engine, Column, String, Integer, DateTime, Text, ForeignKey, Boolean, text
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.sql import func
@@ -18,13 +20,23 @@ class Tenant(Base):
     __tablename__ = "tenants"
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False)
-    phone_number = Column(String, unique=True, nullable=False)  # whatsapp:+1xxx
+    phone_number = Column(String, unique=True, nullable=False)  # whatsapp:+1xxx or sandbox:{uuid}
+    slug = Column(String, unique=True, nullable=True)           # keyword for sandbox routing, e.g. "NABILA"
     api_key = Column(String, unique=True, default=lambda: str(uuid.uuid4()))
     email = Column(String, nullable=True)
     hashed_password = Column(String, nullable=True)
     plan = Column(String, default="basic")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
+
+
+class CustomerSession(Base):
+    """Maps a customer's WhatsApp number to a tenant in sandbox mode."""
+    __tablename__ = "customer_sessions"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    customer = Column(String, nullable=False, index=True)   # whatsapp:+51xxx
+    tenant_id = Column(String, ForeignKey("tenants.id"), nullable=False)
+    last_seen = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
 class TenantSetting(Base):
@@ -57,15 +69,43 @@ class Order(Base):
     created_at = Column(DateTime, server_default=func.now())
 
 
+def _generate_slug(name: str) -> str:
+    normalized = unicodedata.normalize("NFKD", name)
+    ascii_str = normalized.encode("ascii", "ignore").decode("ascii")
+    slug = re.sub(r"[^A-Z0-9]", "", ascii_str.upper())
+    return (slug[:12] or "NEGOCIO")
+
+
+def _unique_slug(db, base: str) -> str:
+    candidate = base
+    while db.query(Tenant).filter(Tenant.slug == candidate).first():
+        candidate = base[:8] + uuid.uuid4().hex[:4].upper()
+    return candidate
+
+
 def init_db():
     Base.metadata.create_all(engine)
     # Add new columns to existing tables without Alembic
+    is_pg = DATABASE_URL.startswith("postgresql")
     with engine.begin() as conn:
-        for col, typ in [("email", "VARCHAR"), ("hashed_password", "VARCHAR")]:
+        for col, typ in [
+            ("email", "VARCHAR"),
+            ("hashed_password", "VARCHAR"),
+            ("slug", "VARCHAR"),
+        ]:
             try:
-                conn.execute(text(f"ALTER TABLE tenants ADD COLUMN IF NOT EXISTS {col} {typ}"))
+                if is_pg:
+                    conn.execute(text(f"ALTER TABLE tenants ADD COLUMN IF NOT EXISTS {col} {typ}"))
+                else:
+                    conn.execute(text(f"ALTER TABLE tenants ADD COLUMN {col} {typ}"))
             except Exception:
                 pass
+
+    # Backfill slugs for existing tenants that don't have one
+    with SessionLocal() as db:
+        for tenant in db.query(Tenant).filter(Tenant.slug == None).all():
+            tenant.slug = _unique_slug(db, _generate_slug(tenant.name))
+        db.commit()
 
 
 # --- Tenant ---
@@ -83,13 +123,35 @@ def get_tenant_by_api_key(api_key: str) -> Tenant | None:
         return db.query(Tenant).filter(Tenant.api_key == api_key).first()
 
 
-def create_tenant(name: str, phone_number: str,
-                  email: str = None, hashed_password: str = None) -> Tenant:
+def get_tenant_by_id(tenant_id: str) -> Tenant | None:
     with SessionLocal() as db:
+        t = db.query(Tenant).filter(Tenant.id == tenant_id, Tenant.is_active == True).first()
+        if t:
+            db.expunge(t)
+        return t
+
+
+def get_tenant_by_slug(slug: str) -> Tenant | None:
+    with SessionLocal() as db:
+        t = db.query(Tenant).filter(
+            Tenant.slug == slug.upper(),
+            Tenant.is_active == True,
+        ).first()
+        if t:
+            db.expunge(t)
+        return t
+
+
+def create_tenant(name: str, phone_number: str,
+                  email: str = None, hashed_password: str = None,
+                  slug: str = None) -> Tenant:
+    with SessionLocal() as db:
+        final_slug = _unique_slug(db, slug or _generate_slug(name))
         tenant = Tenant(
             id=str(uuid.uuid4()),
             name=name,
             phone_number=phone_number,
+            slug=final_slug,
             api_key=str(uuid.uuid4()),
             email=email,
             hashed_password=hashed_password,
@@ -173,6 +235,28 @@ def save_setting(tenant_id: str, key: str, value: str):
             row.value = value
         else:
             db.add(TenantSetting(tenant_id=tenant_id, key=key, value=value))
+        db.commit()
+
+
+# --- Customer Sessions (sandbox routing) ---
+
+def get_customer_session(customer: str) -> CustomerSession | None:
+    with SessionLocal() as db:
+        s = db.query(CustomerSession).filter(
+            CustomerSession.customer == customer
+        ).first()
+        if s:
+            db.expunge(s)
+        return s
+
+
+def upsert_customer_session(customer: str, tenant_id: str) -> None:
+    with SessionLocal() as db:
+        s = db.query(CustomerSession).filter(CustomerSession.customer == customer).first()
+        if s:
+            s.tenant_id = tenant_id
+        else:
+            db.add(CustomerSession(customer=customer, tenant_id=tenant_id))
         db.commit()
 
 

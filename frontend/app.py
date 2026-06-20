@@ -250,17 +250,25 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
     else:
-        wa_link = "https://wa.me/14155238886"
+        slug = info.get("slug") or ""
+        wa_link = f"https://wa.me/14155238886?text={slug}" if slug else "https://wa.me/14155238886"
         st.markdown(f"""
         <div style='margin-top:4px'>
           <div style='font-size:0.68rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px'>Número WhatsApp (sandbox)</div>
           <div style='background:rgba(37,211,102,0.12);border:1px solid rgba(37,211,102,0.3);border-radius:8px;padding:8px 10px;font-family:monospace;font-size:0.82rem;color:#25D366;font-weight:700'>+1 415 523 8886</div>
           <a href='{wa_link}' target='_blank' style='display:block;margin-top:6px;text-align:center;background:#25D366;color:#0f172a;font-weight:700;font-size:0.78rem;padding:7px 10px;border-radius:7px;text-decoration:none;'>
-            💬 Abrir chat en WhatsApp
+            💬 Probar mi bot en WhatsApp
           </a>
-          <div style='font-size:0.68rem;color:#475569;margin-top:4px;text-align:center'>Sandbox compartido para pruebas</div>
         </div>
         """, unsafe_allow_html=True)
+        if slug:
+            st.markdown(f"""
+            <div style='margin-top:8px;background:rgba(99,102,241,0.10);border:1px solid rgba(99,102,241,0.25);border-radius:8px;padding:10px 12px'>
+              <div style='font-size:0.68rem;color:#818cf8;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px'>Código único de tu negocio</div>
+              <div style='font-size:1.1rem;font-weight:800;color:#c7d2fe;font-family:monospace;letter-spacing:2px'>{slug}</div>
+              <div style='font-size:0.68rem;color:#64748b;margin-top:4px'>Comparte este código con tus clientes. Lo envían al número de arriba para conectarse con tu bot.</div>
+            </div>
+            """, unsafe_allow_html=True)
 
     st.divider()
     if st.button("Cerrar sesión"):

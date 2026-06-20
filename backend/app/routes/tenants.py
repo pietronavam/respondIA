@@ -125,6 +125,7 @@ def get_me(tenant: TenantModel = Depends(require_tenant)):
         "id": tenant.id,
         "name": tenant.name,
         "phone_number": tenant.phone_number,
+        "slug": tenant.slug,
         "plan": tenant.plan,
     }
 

@@ -1,6 +1,5 @@
 import requests
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 
 API_URL = "https://respondia.onrender.com"
@@ -18,7 +17,33 @@ st.markdown("""
 #MainMenu, footer {visibility: hidden;}
 header {visibility: visible;}
 header [data-testid="stToolbar"] {visibility: hidden;}
-[data-testid="collapsedControl"] {visibility: visible !important; display: flex !important;}
+
+/* Sidebar collapse button (« arrows inside the sidebar) → green */
+[data-testid="stSidebarCollapseButton"] button {
+    color: #25D366 !important;
+    background: transparent !important;
+}
+[data-testid="stSidebarCollapseButton"] button svg {
+    fill: #25D366 !important;
+    color: #25D366 !important;
+}
+
+/* Collapsed control (» button when sidebar is hidden) → dark bg + green arrow */
+[data-testid="collapsedControl"] {
+    visibility: visible !important;
+    display: flex !important;
+    background: #0f172a !important;
+    border-radius: 0 8px 8px 0 !important;
+    padding: 4px 2px !important;
+}
+[data-testid="collapsedControl"] button {
+    color: #25D366 !important;
+    background: transparent !important;
+}
+[data-testid="collapsedControl"] svg {
+    fill: #25D366 !important;
+    color: #25D366 !important;
+}
 
 .main .block-container {
     padding: 2rem 2.5rem;
@@ -288,17 +313,6 @@ with st.sidebar:
         st.session_state.pop("tenant_info", None)
         st.rerun()
 
-
-# ── SIDEBAR TOGGLE ────────────────────────────────────────────────────────────
-
-if st.button("☰  Mi negocio", help="Abrir/cerrar panel lateral"):
-    components.html("""
-    <script>
-    const btn = window.parent.document.querySelector('[data-testid="collapsedControl"]')
-             || window.parent.document.querySelector('[data-testid="stSidebarCollapseButton"] button');
-    if (btn) btn.click();
-    </script>
-    """, height=0, width=0)
 
 # ── STATS ─────────────────────────────────────────────────────────────────────
 

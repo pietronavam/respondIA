@@ -14,7 +14,9 @@ st.set_page_config(
 # ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-#MainMenu, footer, header {visibility: hidden;}
+#MainMenu, footer {visibility: hidden;}
+header {visibility: visible;}
+header [data-testid="stToolbar"] {visibility: hidden;}
 
 .main .block-container {
     padding: 2rem 2.5rem;

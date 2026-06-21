@@ -152,28 +152,33 @@ async def patch_order(order_id: int, body: StatusUpdate, tenant: Tenant = Depend
 
     # Notify customer via WhatsApp
     if body.status in ("enviado", "entregado"):
-        from ..services.followup_service import send_followup, SANDBOX_FROM
-        phone = tenant.phone_number or ""
-        from_wa = phone if (phone.startswith("whatsapp:") and "sandbox" not in phone) else SANDBOX_FROM
-        business_name = get_setting(tenant.id, "business_name") or tenant.name
+        try:
+            from ..services.followup_service import send_followup, SANDBOX_FROM
+            phone = tenant.phone_number or ""
+            from_wa = phone if (phone.startswith("whatsapp:") and "sandbox" not in phone) else SANDBOX_FROM
+            business_name = get_setting(tenant.id, "business_name") or tenant.name
 
-        if body.status == "enviado":
-            zone_name, delivery_time = await asyncio.to_thread(
-                _detect_shipping_zone, tenant.id, order.customer
-            )
-            message = (
-                f"🚚 ¡Tu pedido *{order.code}* está en camino!\n"
-                f"Zona de entrega: *{zone_name}*\n"
-                f"Tiempo estimado: *{delivery_time}*\n\n"
-                f"Cualquier consulta por aquí. ¡Gracias por tu compra! 🙌"
-            )
-        else:  # entregado
-            message = (
-                f"✅ ¡Tu pedido *{order.code}* ha sido entregado!\n"
-                f"Esperamos que lo disfrutes mucho 😊\n"
-                f"Si tienes alguna consulta, escríbenos. — *{business_name}*"
-            )
+            if body.status == "enviado":
+                zone_name, delivery_time = await asyncio.to_thread(
+                    _detect_shipping_zone, tenant.id, order.customer
+                )
+                message = (
+                    f"🚚 ¡Tu pedido *{order.code}* está en camino!\n"
+                    f"Zona de entrega: *{zone_name}*\n"
+                    f"Tiempo estimado: *{delivery_time}*\n\n"
+                    f"Cualquier consulta por aquí. ¡Gracias por tu compra! 🙌"
+                )
+            else:  # entregado
+                message = (
+                    f"✅ ¡Tu pedido *{order.code}* ha sido entregado!\n"
+                    f"Esperamos que lo disfrutes mucho 😊\n"
+                    f"Si tienes alguna consulta, escríbenos. — *{business_name}*"
+                )
 
-        await asyncio.to_thread(send_followup, order.customer, message, from_wa)
+            print(f"[ORDER NOTIFY] Sending '{body.status}' notification to {order.customer}")
+            sent = await asyncio.to_thread(send_followup, order.customer, message, from_wa)
+            print(f"[ORDER NOTIFY] Result: {'sent' if sent else 'FAILED'} — {order.code}")
+        except Exception as e:
+            print(f"[ORDER NOTIFY ERROR] {body.status} / {order_id}: {e}")
 
     return {"status": "updated"}

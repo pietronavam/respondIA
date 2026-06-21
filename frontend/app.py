@@ -476,6 +476,10 @@ with tab_config:
             yape_input = st.text_input("Número Yape",
                                         value=cfg_data.get("yape_number", ""),
                                         placeholder="Ej: 987654321")
+            yape_name_input = st.text_input("Nombre de la cuenta Yape",
+                                        value=cfg_data.get("yape_name", ""),
+                                        placeholder="Ej: Nabila García",
+                                        help="El nombre completo que aparece en Yape. Se usará para verificar pagos.")
         with col_p:
             plin_input = st.text_input("Número Plin",
                                         value=cfg_data.get("plin_number", ""),
@@ -502,6 +506,7 @@ with tab_config:
                 "business_name": biz_input,
                 "hours": hours_input,
                 "yape_number": yape_input,
+                "yape_name":   yape_name_input.strip(),
                 "plin_number": plin_input,
                 "culqi_link": culqi_input,
                 "owner_whatsapp": owner_wa_input.strip(),

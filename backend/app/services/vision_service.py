@@ -17,6 +17,7 @@ async def verify_payment_screenshot(
     twilio_token: str,
     expected_total: int,
     yape_number: str = "",
+    yape_name: str = "",
     plin_number: str = "",
 ) -> tuple[bool, str]:
     """
@@ -35,29 +36,44 @@ async def verify_payment_screenshot(
         # If image can't be downloaded, accept payment to avoid blocking real customers
         return True, "No se pudo descargar la imagen, pago aceptado por defecto"
 
-    recipients = []
-    if yape_number:
-        recipients.append(f"Yape: {yape_number}")
-    if plin_number:
-        recipients.append(f"Plin: {plin_number}")
-    recipient_str = " o ".join(recipients) if recipients else "el número del negocio"
+    # Build verification parameters
+    yape_last3 = yape_number[-3:] if yape_number else ""
+    plin_last3  = plin_number[-3:]  if plin_number  else ""
+
+    phone_check = ""
+    if yape_last3:
+        phone_check += f"- Yape: los últimos 3 dígitos del número deben ser {yape_last3} (el resto aparece como ***). "
+    if plin_last3:
+        phone_check += f"- Plin: los últimos 3 dígitos deben ser {plin_last3}. "
+    if not phone_check:
+        phone_check = "- No hay número configurado, omite esta verificación."
+
+    name_check = ""
+    if yape_name:
+        name_check = (f"El nombre del destinatario debe parecerse a '{yape_name}'. "
+                      f"Yape muestra el nombre abreviado/truncado (ej: 'Nabila Gar*'). "
+                      f"Acepta si las primeras letras del nombre o apellido coinciden.")
+    else:
+        name_check = "No hay nombre configurado, omite esta verificación."
 
     prompt = f"""Analiza esta captura de pantalla de pago por Yape o Plin.
 
-Verifica en orden:
-1. AUTENTICIDAD: ¿Es un comprobante genuino de Yape o Plin? Rechaza si parece editado, falsificado, o es una captura de otra app.
-2. MONTO: ¿El monto pagado es exactamente S/{expected_total}? No aceptes montos distintos.
-3. DESTINATARIO: El número destino debe ser {recipient_str}. Compara dígito a dígito si el número se ve en pantalla. Si el número NO es legible, acepta igual.
-4. FECHA/HORA: ¿La transacción fue hoy o en las últimas 24 horas? Si no se ve fecha/hora, acepta igual.
+Verifica en este orden:
+1. AUTENTICIDAD: ¿Es un comprobante genuino de Yape o Plin? Rechaza si parece editado o falsificado.
+2. MONTO: ¿El monto es exactamente S/{expected_total}? Si no coincide → rechaza.
+3. NÚMERO DESTINO: {phone_check}
+   Yape oculta los primeros 6 dígitos con ***. Solo compara los últimos 3 visibles.
+   Si los últimos 3 dígitos son distintos a los esperados → rechaza.
+   Si el número no es visible → acepta.
+4. NOMBRE: {name_check}
+   Si el nombre visible no tiene ninguna similitud con el esperado → rechaza.
+   Si no hay nombre visible → acepta.
+5. FECHA/HORA: ¿La transacción fue hoy o en las últimas 24 horas? Si no se ve → acepta.
 
-Reglas estrictas:
-- Si el monto no coincide exactamente → rechaza.
-- Si el número es claramente diferente → rechaza.
-- Si parece falsificado → rechaza.
-- En caso de duda razonable → acepta (no bloquees pagos reales).
+Regla general: en caso de duda razonable → acepta (no bloquees pagos reales).
 
 Responde ÚNICAMENTE con este JSON (sin texto extra):
-{{"verificado": true/false, "motivo": "explicación breve en español", "monto_detectado": <número o null>, "numero_detectado": "<número o null>"}}"""
+{{"verificado": true/false, "motivo": "explicación breve en español", "monto_detectado": <número o null>, "numero_detectado": "<últimos 3 dígitos o null>"}}"""
 
     try:
         response = _client.chat.completions.create(

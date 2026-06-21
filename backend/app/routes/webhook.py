@@ -167,14 +167,16 @@ async def whatsapp_webhook(
     if is_image and MediaUrl0:
         pending = get_pending_order(tenant.id, From)
         if pending:
-            yape = get_setting(tenant.id, "yape_number") or ""
-            plin = get_setting(tenant.id, "plin_number") or ""
+            yape      = get_setting(tenant.id, "yape_number") or ""
+            yape_name = get_setting(tenant.id, "yape_name")  or ""
+            plin      = get_setting(tenant.id, "plin_number") or ""
             verified, reason = await verify_payment_screenshot(
                 image_url=MediaUrl0,
                 twilio_sid=ACCOUNT_SID,
                 twilio_token=AUTH_TOKEN,
                 expected_total=pending.total,
                 yape_number=yape,
+                yape_name=yape_name,
                 plin_number=plin,
             )
             if verified:

@@ -2,6 +2,7 @@ import os
 import re
 import uuid
 import unicodedata
+from datetime import datetime
 from sqlalchemy import create_engine, Column, String, Integer, DateTime, Text, ForeignKey, Boolean, text, UniqueConstraint
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.sql import func
@@ -298,7 +299,7 @@ def get_interests(tenant_id: str) -> list:
 
 def get_stale_interests(tenant_id: str, min_days: int = 3) -> list:
     """Interests older than min_days with no follow-up sent yet."""
-    from datetime import timedelta
+    from datetime import timedelta  # noqa: already imported datetime above
     with SessionLocal() as db:
         cutoff = datetime.utcnow() - timedelta(days=min_days)
         rows = db.query(Interest).filter(

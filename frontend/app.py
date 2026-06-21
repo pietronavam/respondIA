@@ -484,6 +484,10 @@ with tab_config:
             plin_input = st.text_input("Número Plin",
                                         value=cfg_data.get("plin_number", ""),
                                         placeholder="Ej: 987654321")
+            plin_name_input = st.text_input("Nombre de la cuenta Plin",
+                                        value=cfg_data.get("plin_name", ""),
+                                        placeholder="Ej: Nabila García",
+                                        help="Nombre completo de la cuenta Plin para verificar pagos.")
         culqi_input = st.text_input("Link de pago Culqi (opcional)",
                                      value=cfg_data.get("culqi_link", ""),
                                      placeholder="https://checkout.culqi.com/...")
@@ -620,6 +624,7 @@ with tab_config:
                 "yape_number":        yape_input,
                 "yape_name":          yape_name_input.strip(),
                 "plin_number":        plin_input,
+                "plin_name":          plin_name_input.strip(),
                 "culqi_link":         culqi_input,
                 "owner_whatsapp":     owner_wa_input.strip(),
                 "followup_enabled":   fu_enabled,

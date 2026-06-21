@@ -88,6 +88,7 @@ class BusinessConfig(BaseModel):
     yape_number: str = ""
     yape_name: str = ""
     plin_number: str = ""
+    plin_name: str = ""
     culqi_link: str = ""
     owner_whatsapp: str = ""
     followup_enabled: bool = False
@@ -110,6 +111,7 @@ def save_config(cfg: BusinessConfig, tenant: Tenant = Depends(require_tenant)):
     save_setting(tenant.id, "yape_number", cfg.yape_number)
     save_setting(tenant.id, "yape_name", cfg.yape_name)
     save_setting(tenant.id, "plin_number", cfg.plin_number)
+    save_setting(tenant.id, "plin_name", cfg.plin_name)
     save_setting(tenant.id, "culqi_link", cfg.culqi_link)
     save_setting(tenant.id, "owner_whatsapp", cfg.owner_whatsapp)
     save_setting(tenant.id, "followup_enabled", "1" if cfg.followup_enabled else "0")
@@ -134,6 +136,7 @@ def get_config(tenant: Tenant = Depends(require_tenant)):
         "yape_number":        get_setting(tenant.id, "yape_number", ""),
         "yape_name":          get_setting(tenant.id, "yape_name", ""),
         "plin_number":        get_setting(tenant.id, "plin_number", ""),
+        "plin_name":          get_setting(tenant.id, "plin_name", ""),
         "culqi_link":         get_setting(tenant.id, "culqi_link", ""),
         "owner_whatsapp":     get_setting(tenant.id, "owner_whatsapp", ""),
         "followup_enabled":   get_setting(tenant.id, "followup_enabled", "0") == "1",

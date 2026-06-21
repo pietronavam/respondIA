@@ -572,11 +572,10 @@ with tab_orders:
     seccion = st.radio(
         "sección",
         SECTIONS,
-        index=SECTIONS.index(st.session_state.orders_tab),
+        key="orders_tab",
         horizontal=True,
         label_visibility="collapsed",
     )
-    st.session_state.orders_tab = seccion
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
     pagados    = [o for o in order_list if o["status"] == "pagado"]

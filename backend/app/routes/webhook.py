@@ -27,6 +27,29 @@ SANDBOX_FROM  = os.getenv("TWILIO_WHATSAPP_NUMBER", "whatsapp:+14155238886")
 DEBOUNCE_SECS = 7.0
 _INTEREST_PRICE   = _re.compile(r'S/\d+')
 _INTEREST_PRODUCT = _re.compile(r'polo|jean|blusa|vestido|talla|color|disponible|precio|stock|conjunto|short', _re.I)
+_TALLA_RE  = _re.compile(r'talla\s+(XS|S|M|L|XL|XXL|[0-9]+)|(?<!\w)(XS|S|M|L|XL|XXL)(?!\w)', _re.I)
+_COLOR_RE  = _re.compile(
+    r'\b(negro|negra|blanco|blanca|rojo|roja|azul|verde oliva|verde|amarillo|amarilla|'
+    r'rosado|rosada|gris|morado|morada|beige|crema|naranja|celeste|marino|oliva|nude)\b', _re.I)
+
+
+def _extract_interest(bot_reply: str) -> str:
+    import json
+    line = bot_reply.split('\n')[0]
+    # Product: prefer text between asterisks (*Polo básico*)
+    bold = _re.search(r'\*([^*]+)\*', line)
+    if bold:
+        product = bold.group(1).strip()
+    else:
+        m = _re.search(r'(jean\s+\w+\s*\w*|polo\s+\w+\s*\w*|blusa\s*\w*|vestido\s*\w*|conjunto|short|falda)\b', line, _re.I)
+        product = m.group(0).strip().title() if m else ""
+    # Talla
+    tm = _TALLA_RE.search(line)
+    talla = (tm.group(1) or tm.group(2)).upper() if tm else ""
+    # Color
+    cm = _COLOR_RE.search(line)
+    color = cm.group(1).capitalize() if cm else ""
+    return json.dumps({"product": product[:60], "talla": talla, "color": color}, ensure_ascii=False)
 
 
 def _empty_twiml():
@@ -72,8 +95,7 @@ async def _process_and_send(customer: str, tenant_id: str, user_message: str):
         except Exception as e:
             print(f"[ORDER ERROR] {e}\n{traceback.format_exc()}")
     elif _INTEREST_PRICE.search(bot_reply) and _INTEREST_PRODUCT.search(bot_reply):
-        product_hint = bot_reply.split('\n')[0].strip()[:120]
-        upsert_interest(tenant_id, customer, product_hint)
+        upsert_interest(tenant_id, customer, _extract_interest(bot_reply))
 
     save_message(tenant_id, customer, user_message, bot_reply)
     try:

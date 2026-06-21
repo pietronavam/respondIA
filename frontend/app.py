@@ -594,8 +594,11 @@ with tab_orders:
         if not interest_list:
             st.info("Aún no hay clientes con interés detectado. Aparecen aquí cuando el bot menciona productos y precios.", icon="👀")
         else:
-            hi_cols = st.columns([1.5, 3, 1.6, 1.4])
-            for col, label in zip(hi_cols, ["CLIENTE", "PRODUCTO DE INTERÉS", "DESDE", "ACCIÓN"]):
+            import json as _json
+            LEAD_COLS = [1.5, 2.5, 0.7, 1.0, 1.3, 1.2]
+            LEAD_LABELS = ["CLIENTE", "PRODUCTO", "TALLA", "COLOR", "DESDE", "ACCIÓN"]
+            hi_cols = st.columns(LEAD_COLS)
+            for col, label in zip(hi_cols, LEAD_LABELS):
                 col.markdown(
                     f"<div style='font-size:0.72rem;font-weight:700;color:#64748B;"
                     f"letter-spacing:0.06em;padding:6px 0;background:#F1F5F9;"
@@ -607,14 +610,26 @@ with tab_orders:
             for lead in interest_list:
                 customer_short = lead["customer"].replace("whatsapp:+51", "+51 ").replace("whatsapp:", "")
                 date_str = lead["created_at"][:16].replace("T", " ") if lead["created_at"] else "—"
-                c1, c2, c3, c4 = st.columns([1.5, 3, 1.6, 1.4])
+                raw = lead.get("last_product") or ""
+                try:
+                    d = _json.loads(raw)
+                    prod  = d.get("product", "") or "—"
+                    talla = d.get("talla", "")  or "—"
+                    color = d.get("color", "")  or "—"
+                except Exception:
+                    prod, talla, color = raw or "—", "—", "—"
+                c1, c2, c3, c4, c5, c6 = st.columns(LEAD_COLS)
                 with c1:
                     st.markdown(f"{C}<span class='order-meta'>{customer_short}</span>{E}", unsafe_allow_html=True)
                 with c2:
-                    st.markdown(f"{C}<span style='font-size:0.85rem'>{lead['last_product'] or '—'}</span>{E}", unsafe_allow_html=True)
+                    st.markdown(f"{C}<span style='font-size:0.85rem;font-weight:600'>{prod}</span>{E}", unsafe_allow_html=True)
                 with c3:
-                    st.markdown(f"{C}<span class='order-meta'>{date_str}</span>{E}", unsafe_allow_html=True)
+                    st.markdown(f"{C}<span class='order-meta'>{talla}</span>{E}", unsafe_allow_html=True)
                 with c4:
+                    st.markdown(f"{C}<span class='order-meta'>{color}</span>{E}", unsafe_allow_html=True)
+                with c5:
+                    st.markdown(f"{C}<span class='order-meta'>{date_str}</span>{E}", unsafe_allow_html=True)
+                with c6:
                     if st.button("Quitar", key=f"rm_lead_{lead['customer']}", use_container_width=True):
                         try:
                             import urllib.parse

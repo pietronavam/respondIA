@@ -57,9 +57,8 @@ Catálogo relevante:
 Tu tarea: escribe UN mensaje de WhatsApp corto (máximo 3 líneas) para reconquistar a este cliente.
 
 Criterios:
-- Si la temporada actual es relevante para el producto (ej: shorts en verano, abrigos en invierno), úsala creativamente.
-- Si no es relevante, busca OTRO ángulo persuasivo: escasez ("quedan pocas unidades"), exclusividad, precio, o un tono cálido/divertido.
-- No forces el contexto estacional si no encaja.
+- El contexto estacional SOLO es relevante para productos muy específicos: ropa de baño o shorts en verano, casacas o abrigos en invierno. Para jeans, polos, blusas, conjuntos casuales → NO lo uses.
+- Si la temporada no aplica claramente, elige OTRO ángulo: escasez ("quedan pocas unidades"), precio especial, estilo o un tono cálido/divertido.
 - Sé creativo, natural, breve. Tono amigable, no invasivo.
 - Usa formato WhatsApp: *negrita* con asterisco simple. Sin listas.
 - NO empieces con "Hola" genérico. Engancha desde la primera palabra.
@@ -158,11 +157,15 @@ def find_matching_interests(interests: list, product_name: str) -> list:
     return matched
 
 
+def _fmt(price: float) -> str:
+    return f"{price:g}"
+
+
 def generate_price_drop_message(
     business_name: str,
     product: str,
-    old_price: int,
-    new_price: int,
+    old_price: float,
+    new_price: float,
     talla: str = "",
     color: str = "",
 ) -> str:
@@ -172,10 +175,10 @@ def generate_price_drop_message(
     if color:
         detail_parts.append(f"color {color}")
     detail = f" ({', '.join(detail_parts)})" if detail_parts else ""
-    ahorro = old_price - new_price
+    ahorro = round(old_price - new_price, 2)
 
     prompt = f"""Eres el asistente de ventas de *{business_name}* en WhatsApp.
-El producto *{product}{detail}* acaba de bajar de precio: antes S/{old_price}, ahora S/{new_price} (ahorro de S/{ahorro}).
+El producto *{product}{detail}* acaba de bajar de precio: antes S/{_fmt(old_price)}, ahora S/{_fmt(new_price)} (ahorro de S/{_fmt(ahorro)}).
 
 Un cliente había mostrado interés en este producto pero no compró. Escríbele UN mensaje de WhatsApp corto (máximo 3 líneas) para avisarle de la oferta.
 
@@ -199,8 +202,8 @@ Responde SOLO con el mensaje, sin comillas ni explicaciones."""
     except Exception as e:
         print(f"[PRICE DROP MSG ERROR] {e}")
         return (
-            f"🎉 ¡Buenas noticias! El *{product}* que te interesó bajó de S/{old_price} "
-            f"a *S/{new_price}*. ¡Ahorras S/{ahorro}! ¿Lo apartamos? 😊"
+            f"🎉 ¡Buenas noticias! El *{product}* que te interesó bajó de S/{_fmt(old_price)} "
+            f"a *S/{_fmt(new_price)}*. ¡Ahorras S/{_fmt(ahorro)}! ¿Lo apartamos? 😊"
         )
 
 
@@ -222,8 +225,8 @@ def process_price_drop_alerts(
 
     for drop in drops:
         product   = drop.get("product", "")
-        old_price = int(drop.get("old_price", 0))
-        new_price = int(drop.get("new_price", 0))
+        old_price = float(drop.get("old_price", 0))
+        new_price = float(drop.get("new_price", 0))
         if not product or old_price <= new_price:
             continue
 

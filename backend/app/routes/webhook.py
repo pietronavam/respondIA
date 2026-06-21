@@ -45,6 +45,13 @@ def _extract_interest(bot_reply: str) -> str:
     bold = _re.search(r'\*([^*]+)\*', line)
     if bold:
         product = bold.group(1).strip()
+        # If bold is just a descriptor ("wide leg"), prepend the product type found before it
+        type_before = _re.search(
+            r'\b(jean|polo|blusa|vestido|conjunto|short|falda)\w*\b',
+            line[:bold.start()], _re.I
+        )
+        if type_before and type_before.group(0).lower() not in product.lower():
+            product = f"{type_before.group(0).title()} {product}"
     else:
         m = _re.search(r'(jean\s+\w+\s*\w*|polo\s+\w+\s*\w*|blusa\s*\w*|vestido\s*\w*|conjunto\s*\w*|short|falda)\b', line, _re.I)
         product = m.group(0).strip().title() if m else ""

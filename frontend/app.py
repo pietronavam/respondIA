@@ -760,18 +760,16 @@ with tab_orders:
                     else:
                         if st.button("📩 Enviar", key=fu_key, use_container_width=True,
                                      help="El bot generará y enviará un mensaje de seguimiento personalizado"):
-                            with st.spinner("Generando mensaje..."):
-                                try:
-                                    r = api("POST", "/orders/interests/followup",
-                                            params={"customer": lead["customer"]})
-                                    if r.status_code == 200:
-                                        msg_sent = r.json().get("message", "")
-                                        st.success(f"Enviado: {msg_sent[:120]}")
-                                        st.rerun()
-                                    else:
-                                        st.error(f"Error {r.status_code}")
-                                except Exception as e:
-                                    st.error(f"Error: {e}")
+                            try:
+                                r = api("POST", "/orders/interests/followup",
+                                        params={"customer": lead["customer"]})
+                                data = r.json()
+                                if data.get("status") == "sent":
+                                    st.rerun()
+                                else:
+                                    st.toast(data.get("detail") or "No se pudo enviar", icon="⚠️")
+                            except Exception as e:
+                                st.toast(f"Error: {e}", icon="⚠️")
                 with c7:
                     if st.button("✕", key=f"rm_lead_{lead['customer']}", use_container_width=True):
                         try:

@@ -1,10 +1,30 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from fastapi import APIRouter, BackgroundTasks, UploadFile, File, HTTPException, Depends
 from pydantic import BaseModel
 from ..auth import require_tenant
-from ..database import Tenant, save_setting, get_setting
+from ..database import Tenant, save_setting, get_setting, get_interests
 from ..services.ocr import extract_text_from_pdf, extract_text_from_image
 
 router = APIRouter(prefix="/catalog")
+
+
+def _trigger_price_drop_alerts(tenant: Tenant, old_catalog: str, new_catalog: str):
+    from ..services.followup_service import process_price_drop_alerts, SANDBOX_FROM
+    interests = get_interests(tenant.id)
+    if not interests:
+        return
+    business_name = get_setting(tenant.id, "business_name") or tenant.name
+    phone = tenant.phone_number or ""
+    from_wa = phone if (phone.startswith("whatsapp:") and "sandbox" not in phone) else SANDBOX_FROM
+    count = process_price_drop_alerts(
+        tenant_id=tenant.id,
+        old_catalog=old_catalog,
+        new_catalog=new_catalog,
+        business_name=business_name,
+        from_wa=from_wa,
+        interests=interests,
+    )
+    if count:
+        print(f"[PRICE DROP] Sent {count} alert(s) for tenant {tenant.id}")
 
 ALLOWED_TYPES = {
     "application/pdf": "pdf",
@@ -16,6 +36,7 @@ ALLOWED_TYPES = {
 
 @router.post("/upload")
 async def upload_catalog(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     tenant: Tenant = Depends(require_tenant),
 ):
@@ -34,7 +55,10 @@ async def upload_catalog(
     if not text:
         raise HTTPException(422, "No se pudo extraer texto del archivo")
 
+    old_catalog = get_setting(tenant.id, "catalog") or ""
     save_setting(tenant.id, "catalog", text)
+    if old_catalog:
+        background_tasks.add_task(_trigger_price_drop_alerts, tenant, old_catalog, text)
     return {"status": "ok", "characters": len(text), "preview": text[:500]}
 
 
@@ -48,8 +72,11 @@ class ManualCatalog(BaseModel):
 
 
 @router.post("/manual")
-def save_manual(data: ManualCatalog, tenant: Tenant = Depends(require_tenant)):
+def save_manual(data: ManualCatalog, background_tasks: BackgroundTasks, tenant: Tenant = Depends(require_tenant)):
+    old_catalog = get_setting(tenant.id, "catalog") or ""
     save_setting(tenant.id, "catalog", data.text)
+    if old_catalog:
+        background_tasks.add_task(_trigger_price_drop_alerts, tenant, old_catalog, data.text)
     return {"status": "ok"}
 
 

@@ -95,3 +95,149 @@ def send_followup(customer: str, message: str, from_: str = "") -> bool:
     except Exception as e:
         print(f"[FOLLOWUP SEND ERROR] {e}")
         return False
+
+
+# ── Price-drop alerts ──────────────────────────────────────────────────────────
+
+def detect_price_drops(old_catalog: str, new_catalog: str) -> list[dict]:
+    """
+    Returns [{product, old_price, new_price}] where new_price < old_price.
+    Uses LLM to handle natural-language catalogs.
+    """
+    prompt = f"""Compara estos dos catálogos de una tienda y encuentra qué productos bajaron de precio.
+
+CATÁLOGO ANTERIOR:
+{old_catalog[:1000]}
+
+CATÁLOGO NUEVO:
+{new_catalog[:1000]}
+
+Devuelve SOLO JSON con las bajadas de precio (new_price < old_price):
+[{{"product": "nombre del producto", "old_price": número, "new_price": número}}]
+
+Si no hay bajadas, devuelve [].
+No incluyas productos cuyo precio subió ni los que no cambiaron."""
+
+    try:
+        import json, re
+        resp = _client.chat.completions.create(
+            model="deepseek-v4-flash",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1024,
+        )
+        raw = (resp.choices[0].message.content or "").strip()
+        match = re.search(r'\[.*\]', raw, re.DOTALL)
+        if match:
+            return json.loads(match.group())
+    except Exception as e:
+        print(f"[PRICE DROP DETECT ERROR] {e}")
+    return []
+
+
+def _keywords(text: str) -> set[str]:
+    """Lowercase word tokens of length ≥ 3, ignoring accents."""
+    import unicodedata, re
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
+    return {w for w in re.findall(r'[a-z]+', text.lower()) if len(w) >= 3}
+
+
+def find_matching_interests(interests: list, product_name: str) -> list:
+    """Returns interests whose product field shares keywords with product_name."""
+    import json
+    prod_kw = _keywords(product_name)
+    matched = []
+    for interest in interests:
+        raw = interest.last_product or ""
+        try:
+            d = json.loads(raw)
+            candidate = d.get("product", "") or raw
+        except Exception:
+            candidate = raw
+        if prod_kw & _keywords(candidate):
+            matched.append(interest)
+    return matched
+
+
+def generate_price_drop_message(
+    business_name: str,
+    product: str,
+    old_price: int,
+    new_price: int,
+    talla: str = "",
+    color: str = "",
+) -> str:
+    detail_parts = []
+    if talla:
+        detail_parts.append(f"talla {talla}")
+    if color:
+        detail_parts.append(f"color {color}")
+    detail = f" ({', '.join(detail_parts)})" if detail_parts else ""
+    ahorro = old_price - new_price
+
+    prompt = f"""Eres el asistente de ventas de *{business_name}* en WhatsApp.
+El producto *{product}{detail}* acaba de bajar de precio: antes S/{old_price}, ahora S/{new_price} (ahorro de S/{ahorro}).
+
+Un cliente había mostrado interés en este producto pero no compró. Escríbele UN mensaje de WhatsApp corto (máximo 3 líneas) para avisarle de la oferta.
+
+Criterios:
+- El precio reducido ES la noticia principal. Úsala como gancho.
+- Sé entusiasta pero natural. Tono amigable, no de spam.
+- Usa formato WhatsApp: *negrita*. Sin listas.
+- Menciona el precio nuevo y lo que se ahorra.
+- Termina con una llamada a la acción directa.
+- NO empieces con "Hola" genérico.
+
+Responde SOLO con el mensaje, sin comillas ni explicaciones."""
+
+    try:
+        resp = _client.chat.completions.create(
+            model="deepseek-v4-flash",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1024,
+        )
+        return (resp.choices[0].message.content or "").strip()
+    except Exception as e:
+        print(f"[PRICE DROP MSG ERROR] {e}")
+        return (
+            f"🎉 ¡Buenas noticias! El *{product}* que te interesó bajó de S/{old_price} "
+            f"a *S/{new_price}*. ¡Ahorras S/{ahorro}! ¿Lo apartamos? 😊"
+        )
+
+
+def process_price_drop_alerts(
+    tenant_id: str,
+    old_catalog: str,
+    new_catalog: str,
+    business_name: str,
+    from_wa: str,
+    interests: list,
+) -> int:
+    """Detects price drops, finds matching interests, sends alerts. Returns count sent."""
+    drops = detect_price_drops(old_catalog, new_catalog)
+    if not drops:
+        return 0
+
+    sent_count = 0
+    from ..database import mark_followed_up
+
+    for drop in drops:
+        product   = drop.get("product", "")
+        old_price = int(drop.get("old_price", 0))
+        new_price = int(drop.get("new_price", 0))
+        if not product or old_price <= new_price:
+            continue
+
+        matched = find_matching_interests(interests, product)
+        for interest in matched:
+            message = generate_price_drop_message(
+                business_name=business_name,
+                product=product,
+                old_price=old_price,
+                new_price=new_price,
+            )
+            if send_followup(interest.customer, message, from_wa):
+                mark_followed_up(tenant_id, interest.customer)
+                sent_count += 1
+                print(f"[PRICE DROP] Sent to {interest.customer}: {message[:60]}…")
+
+    return sent_count

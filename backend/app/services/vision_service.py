@@ -42,15 +42,22 @@ async def verify_payment_screenshot(
         recipients.append(f"Plin: {plin_number}")
     recipient_str = " o ".join(recipients) if recipients else "el número del negocio"
 
-    prompt = f"""Analiza esta imagen. Es una supuesta captura de pago por Yape o Plin.
+    prompt = f"""Analiza esta captura de pantalla de pago por Yape o Plin.
 
-Verifica:
-1. ¿Es un comprobante real de Yape o Plin?
-2. ¿El monto es S/{expected_total}? (acepta ±1 sol de diferencia)
-3. ¿El destinatario coincide con {recipient_str}? (si no se ve el número, acepta igual)
+Verifica en orden:
+1. AUTENTICIDAD: ¿Es un comprobante genuino de Yape o Plin? Rechaza si parece editado, falsificado, o es una captura de otra app.
+2. MONTO: ¿El monto pagado es exactamente S/{expected_total}? No aceptes montos distintos.
+3. DESTINATARIO: El número destino debe ser {recipient_str}. Compara dígito a dígito si el número se ve en pantalla. Si el número NO es legible, acepta igual.
+4. FECHA/HORA: ¿La transacción fue hoy o en las últimas 24 horas? Si no se ve fecha/hora, acepta igual.
 
-Responde ÚNICAMENTE con JSON:
-{{"verificado": true/false, "motivo": "explicación breve en español"}}"""
+Reglas estrictas:
+- Si el monto no coincide exactamente → rechaza.
+- Si el número es claramente diferente → rechaza.
+- Si parece falsificado → rechaza.
+- En caso de duda razonable → acepta (no bloquees pagos reales).
+
+Responde ÚNICAMENTE con este JSON (sin texto extra):
+{{"verificado": true/false, "motivo": "explicación breve en español", "monto_detectado": <número o null>, "numero_detectado": "<número o null>"}}"""
 
     try:
         response = _client.chat.completions.create(

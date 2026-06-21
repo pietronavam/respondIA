@@ -530,6 +530,7 @@ with tab_orders:
     with col_refresh:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Actualizar 🔄", key="refresh_orders", use_container_width=True):
+            st.session_state.pop("orders_cache", None)
             st.rerun()
 
     try:
@@ -539,19 +540,46 @@ with tab_orders:
     except Exception:
         order_list = []
 
-    if not order_list:
-        st.info("Aún no hay pedidos. Cuando un cliente compre por WhatsApp aparecerá aquí.", icon="🛒")
-    else:
-        STATUS_OPTIONS = ["pendiente", "pagado", "enviado", "entregado"]
-        BADGE_CLASS = {
-            "pendiente": "badge-pendiente",
-            "pagado":    "badge-pagado",
-            "enviado":   "badge-enviado",
-            "entregado": "badge-entregado",
-        }
+    BADGE_CLASS = {
+        "pendiente": "badge-pendiente",
+        "pagado":    "badge-pagado",
+        "enviado":   "badge-enviado",
+        "entregado": "badge-entregado",
+    }
 
-        # Table header — same column proportions as data rows
-        COLS = [1, 1.8, 1.5, 2, 0.9, 1.5, 1.8]
+    pagados   = [o for o in order_list if o["status"] == "pagado"]
+    pendientes = [o for o in order_list if o["status"] == "pendiente"]
+    enviados  = [o for o in order_list if o["status"] in ("enviado", "entregado")]
+
+    seccion = st.radio(
+        "sección",
+        ["Pagados — pendientes de envío", "Pendientes de pago", "Enviados / Entregados"],
+        index=0,
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+    if seccion == "Pagados — pendientes de envío":
+        vista = pagados
+        accion_label = "Marcar enviado"
+        accion_status = "enviado"
+        empty_msg = "No hay pedidos pagados pendientes de envío."
+    elif seccion == "Pendientes de pago":
+        vista = pendientes
+        accion_label = None
+        accion_status = None
+        empty_msg = "No hay pedidos esperando pago."
+    else:
+        vista = enviados
+        accion_label = "Marcar entregado"
+        accion_status = "entregado"
+        empty_msg = "No hay pedidos enviados aún."
+
+    if not vista:
+        st.info(empty_msg, icon="🛒")
+    else:
+        COLS = [1, 1.6, 1.4, 2.2, 0.9, 1.2, 1.6]
         HEADERS = ["PEDIDO", "FECHA", "CLIENTE", "PRODUCTO", "TOTAL", "ESTADO", "ACCIÓN"]
         h_cols = st.columns(COLS)
         for col, label in zip(h_cols, HEADERS):
@@ -563,15 +591,14 @@ with tab_orders:
             )
         st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
 
-        for order in order_list:
+        for order in vista:
             badge = BADGE_CLASS.get(order["status"], "badge-pendiente")
             date_str = order["created_at"][:16].replace("T", " ") if order["created_at"] else "—"
             customer_short = order["customer"].replace("whatsapp:+51", "+51 ").replace("whatsapp:", "")
 
-            # Static row (HTML) + interactive action (Streamlit columns)
             C = "<div style='text-align:center;padding-top:6px'>"
             E = "</div>"
-            c1, c2, c3, c4, c5, c6, c7 = st.columns([1, 1.8, 1.5, 2, 0.9, 1.5, 1.8])
+            c1, c2, c3, c4, c5, c6, c7 = st.columns(COLS)
             with c1:
                 st.markdown(f"{C}<span class='order-code'>{order['code']}</span>{E}", unsafe_allow_html=True)
             with c2:
@@ -585,20 +612,15 @@ with tab_orders:
             with c6:
                 st.markdown(f"{C}<span class='badge {badge}'>{order['status']}</span>{E}", unsafe_allow_html=True)
             with c7:
-                new_status = st.selectbox(
-                    "estado",
-                    STATUS_OPTIONS,
-                    index=STATUS_OPTIONS.index(order["status"]),
-                    key=f"sel_{order['id']}",
-                    label_visibility="collapsed",
-                )
-                if new_status != order["status"]:
-                    if st.button("✓", key=f"upd_{order['id']}", help="Guardar cambio"):
+                if accion_label and order["status"] != accion_status:
+                    if st.button(accion_label, key=f"act_{order['id']}", use_container_width=True):
                         try:
-                            api("PATCH", f"/orders/{order['id']}", json={"status": new_status})
+                            api("PATCH", f"/orders/{order['id']}", json={"status": accion_status})
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error: {e}")
+                else:
+                    st.markdown(f"{C}<span class='badge {badge}'>{order['status']}</span>{E}", unsafe_allow_html=True)
 
             st.markdown("<hr style='margin:4px 0;border-color:#F1F5F9'>", unsafe_allow_html=True)
 

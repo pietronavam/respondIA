@@ -38,3 +38,18 @@ def root():
 @app.get("/health")
 def health():
     return {"ok": True}
+
+
+@app.get("/debug/tenant/{phone}")
+def debug_tenant(phone: str):
+    from .database import get_tenant_by_phone, get_tenant_by_slug, SessionLocal, Tenant
+    t_phone = get_tenant_by_phone(f"whatsapp:{phone}")
+    t_slug  = get_tenant_by_slug("NABILAHOME")
+    with SessionLocal() as db:
+        all_t = db.query(Tenant).all()
+        tenants_info = [{"id": t.id[:8], "name": t.name, "slug": t.slug, "is_active": t.is_active} for t in all_t]
+    return {
+        "by_phone": {"id": t_phone.id[:8], "name": t_phone.name} if t_phone else None,
+        "by_slug":  {"id": t_slug.id[:8],  "name": t_slug.name}  if t_slug  else None,
+        "all_tenants": tenants_info,
+    }

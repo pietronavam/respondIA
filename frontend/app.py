@@ -500,16 +500,36 @@ with tab_config:
         st.caption("Debes estar unido al sandbox de Twilio para recibir mensajes en modo prueba.")
 
     st.markdown("<br>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("**Seguimiento automático de interesados**")
+        st.caption("El bot envía un mensaje personalizado a clientes que mostraron interés pero no compraron.")
+        fu_enabled = st.toggle(
+            "Activar seguimiento automático",
+            value=cfg_data.get("followup_enabled", False),
+        )
+        fu_days = st.number_input(
+            "Días de espera antes de contactar",
+            min_value=1, max_value=30,
+            value=int(cfg_data.get("followup_days", 3)),
+            disabled=not fu_enabled,
+            help="Número de días sin respuesta antes de que el bot envíe un mensaje de seguimiento.",
+        )
+        if fu_enabled:
+            st.caption(f"El bot contactará a los interesados después de {int(fu_days)} días inactivos con un mensaje creativo y personalizado.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Guardar configuración", type="primary"):
         try:
             api("POST", "/catalog/config", json={
-                "business_name": biz_input,
-                "hours": hours_input,
-                "yape_number": yape_input,
-                "yape_name":   yape_name_input.strip(),
-                "plin_number": plin_input,
-                "culqi_link": culqi_input,
-                "owner_whatsapp": owner_wa_input.strip(),
+                "business_name":    biz_input,
+                "hours":            hours_input,
+                "yape_number":      yape_input,
+                "yape_name":        yape_name_input.strip(),
+                "plin_number":      plin_input,
+                "culqi_link":       culqi_input,
+                "owner_whatsapp":   owner_wa_input.strip(),
+                "followup_enabled": fu_enabled,
+                "followup_days":    int(fu_days),
             })
             st.session_state.business_cfg = {"business_name": biz_input, "hours": hours_input}
             st.success("Configuración guardada")
@@ -600,8 +620,8 @@ with tab_orders:
             st.info("Aún no hay clientes con interés detectado. Aparecen aquí cuando el bot menciona productos y precios.", icon="👀")
         else:
             import json as _json
-            LEAD_COLS = [1.5, 2.5, 0.7, 1.0, 1.3, 1.2]
-            LEAD_LABELS = ["CLIENTE", "PRODUCTO", "TALLA", "COLOR", "DESDE", "ACCIÓN"]
+            LEAD_COLS   = [1.5, 2.5, 0.7, 1.0, 1.3, 1.0, 0.8]
+            LEAD_LABELS = ["CLIENTE", "PRODUCTO", "TALLA", "COLOR", "DESDE", "RECORDATORIO", ""]
             hi_cols = st.columns(LEAD_COLS)
             for col, label in zip(hi_cols, LEAD_LABELS):
                 col.markdown(
@@ -615,6 +635,7 @@ with tab_orders:
             for lead in interest_list:
                 customer_short = lead["customer"].replace("whatsapp:+51", "+51 ").replace("whatsapp:", "")
                 date_str = lead["created_at"][:16].replace("T", " ") if lead["created_at"] else "—"
+                followed = lead.get("followed_up_at")
                 raw = lead.get("last_product") or ""
                 try:
                     d = _json.loads(raw)
@@ -623,7 +644,7 @@ with tab_orders:
                     color = d.get("color", "")  or "—"
                 except Exception:
                     prod, talla, color = raw or "—", "—", "—"
-                c1, c2, c3, c4, c5, c6 = st.columns(LEAD_COLS)
+                c1, c2, c3, c4, c5, c6, c7 = st.columns(LEAD_COLS)
                 with c1:
                     st.markdown(f"{C}<span class='order-meta'>{customer_short}</span>{E}", unsafe_allow_html=True)
                 with c2:
@@ -635,11 +656,28 @@ with tab_orders:
                 with c5:
                     st.markdown(f"{C}<span class='order-meta'>{date_str}</span>{E}", unsafe_allow_html=True)
                 with c6:
-                    if st.button("Quitar", key=f"rm_lead_{lead['customer']}", use_container_width=True):
+                    fu_key = f"fu_{lead['customer']}"
+                    if followed:
+                        st.markdown(f"{C}<span style='font-size:0.75rem;color:#16a34a'>✓ Enviado</span>{E}", unsafe_allow_html=True)
+                    else:
+                        if st.button("📩 Enviar", key=fu_key, use_container_width=True,
+                                     help="El bot generará y enviará un mensaje de seguimiento personalizado"):
+                            with st.spinner("Generando mensaje..."):
+                                try:
+                                    r = api("POST", "/orders/interests/followup",
+                                            params={"customer": lead["customer"]})
+                                    if r.status_code == 200:
+                                        msg_sent = r.json().get("message", "")
+                                        st.success(f"Enviado: {msg_sent[:120]}")
+                                        st.rerun()
+                                    else:
+                                        st.error(f"Error {r.status_code}")
+                                except Exception as e:
+                                    st.error(f"Error: {e}")
+                with c7:
+                    if st.button("✕", key=f"rm_lead_{lead['customer']}", use_container_width=True):
                         try:
-                            import urllib.parse
-                            encoded = urllib.parse.quote(lead["customer"], safe="")
-                            api("DELETE", f"/orders/interests/{encoded}")
+                            api("DELETE", f"/orders/interests/{lead['customer']}")
                             st.rerun()
                         except Exception as e:
                             st.error(f"Error: {e}")

@@ -105,6 +105,16 @@ def init_db():
     with engine.begin() as conn:
         conn.execute(text("UPDATE tenants SET is_active = true WHERE is_active IS NULL"))
 
+    # Add followed_up_at to interests if missing
+    with engine.begin() as conn:
+        try:
+            if DATABASE_URL.startswith("postgresql"):
+                conn.execute(text("ALTER TABLE interests ADD COLUMN IF NOT EXISTS followed_up_at TIMESTAMP"))
+            else:
+                conn.execute(text("ALTER TABLE interests ADD COLUMN followed_up_at TIMESTAMP"))
+        except Exception:
+            pass
+
     # Backfill slugs for existing tenants that don't have one
     with SessionLocal() as db:
         for tenant in db.query(Tenant).filter(Tenant.slug == None).all():
@@ -242,12 +252,13 @@ def save_setting(tenant_id: str, key: str, value: str):
 
 class Interest(Base):
     __tablename__ = "interests"
-    id           = Column(Integer, primary_key=True, autoincrement=True)
-    tenant_id    = Column(String, ForeignKey("tenants.id"), nullable=False)
-    customer     = Column(String, nullable=False)
-    last_product = Column(String, nullable=True)   # snippet of what they asked about
-    created_at   = Column(DateTime, server_default=func.now())
-    updated_at   = Column(DateTime, server_default=func.now())
+    id             = Column(Integer, primary_key=True, autoincrement=True)
+    tenant_id      = Column(String, ForeignKey("tenants.id"), nullable=False)
+    customer       = Column(String, nullable=False)
+    last_product   = Column(String, nullable=True)
+    created_at     = Column(DateTime, server_default=func.now())
+    updated_at     = Column(DateTime, server_default=func.now())
+    followed_up_at = Column(DateTime, nullable=True)
     __table_args__ = (UniqueConstraint("tenant_id", "customer"),)
 
 
@@ -283,6 +294,32 @@ def get_interests(tenant_id: str) -> list:
         for r in rows:
             db.expunge(r)
         return rows
+
+
+def get_stale_interests(tenant_id: str, min_days: int = 3) -> list:
+    """Interests older than min_days with no follow-up sent yet."""
+    from datetime import timedelta
+    with SessionLocal() as db:
+        cutoff = datetime.utcnow() - timedelta(days=min_days)
+        rows = db.query(Interest).filter(
+            Interest.tenant_id == tenant_id,
+            Interest.updated_at <= cutoff,
+            Interest.followed_up_at == None,
+        ).all()
+        for r in rows:
+            db.expunge(r)
+        return rows
+
+
+def mark_followed_up(tenant_id: str, customer: str) -> None:
+    with SessionLocal() as db:
+        row = db.query(Interest).filter(
+            Interest.tenant_id == tenant_id,
+            Interest.customer  == customer,
+        ).first()
+        if row:
+            row.followed_up_at = datetime.utcnow()
+            db.commit()
 
 
 # --- Message Buffer (debouncing) ---

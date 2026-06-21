@@ -1,7 +1,15 @@
+import asyncio
+import json
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from ..auth import require_tenant
-from ..database import Tenant, get_orders, update_order_status, get_interests, delete_interest
+from ..database import (
+    Tenant, get_orders, update_order_status,
+    get_interests, delete_interest, mark_followed_up,
+    get_setting,
+)
 
 router = APIRouter(prefix="/orders")
 
@@ -29,18 +37,61 @@ def list_orders(tenant: Tenant = Depends(require_tenant)):
 def list_interests(tenant: Tenant = Depends(require_tenant)):
     return [
         {
-            "customer":     i.customer,
-            "last_product": i.last_product or "",
-            "created_at":   str(i.created_at),
+            "customer":       i.customer,
+            "last_product":   i.last_product or "",
+            "created_at":     str(i.created_at),
+            "followed_up_at": str(i.followed_up_at) if i.followed_up_at else None,
         }
         for i in get_interests(tenant.id)
     ]
 
 
-@router.delete("/interests/{customer}")
+@router.delete("/interests/{customer:path}")
 def remove_interest(customer: str, tenant: Tenant = Depends(require_tenant)):
     delete_interest(tenant.id, customer)
     return {"status": "removed"}
+
+
+@router.post("/interests/followup")
+async def send_interest_followup(customer: str, tenant: Tenant = Depends(require_tenant)):
+    from ..services.followup_service import generate_followup_message, send_followup, SANDBOX_FROM
+
+    interests = get_interests(tenant.id)
+    interest = next((i for i in interests if i.customer == customer), None)
+    if not interest:
+        raise HTTPException(404, "Interés no encontrado")
+
+    raw = interest.last_product or ""
+    try:
+        d = json.loads(raw)
+        product = d.get("product", "") or "producto"
+        talla   = d.get("talla", "")
+        color   = d.get("color", "")
+    except Exception:
+        product, talla, color = raw or "producto", "", ""
+
+    days_since     = (datetime.utcnow() - interest.updated_at).days if interest.updated_at else 0
+    business_name  = get_setting(tenant.id, "business_name") or "la tienda"
+    catalog        = get_setting(tenant.id, "catalog") or ""
+
+    message = await asyncio.to_thread(
+        generate_followup_message,
+        business_name=business_name,
+        product=product,
+        talla=talla,
+        color=color,
+        days_since=days_since,
+        catalog_snippet=catalog,
+    )
+
+    phone = tenant.phone_number or ""
+    from_wa = phone if (phone.startswith("whatsapp:") and "sandbox" not in phone) else SANDBOX_FROM
+    sent = await asyncio.to_thread(send_followup, customer, message, from_wa)
+
+    if sent:
+        mark_followed_up(tenant.id, customer)
+
+    return {"status": "sent" if sent else "error", "message": message}
 
 
 class StatusUpdate(BaseModel):

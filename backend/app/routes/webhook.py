@@ -36,19 +36,22 @@ _COLOR_RE  = _re.compile(
 def _extract_interest(bot_reply: str) -> str:
     import json
     line = bot_reply.split('\n')[0]
-    # Product: prefer text between asterisks (*Polo básico*)
+    # Talla and color from the full line (most reliable source)
+    tm = _TALLA_RE.search(line)
+    talla = (tm.group(1) or tm.group(2)).upper() if tm else ""
+    cm = _COLOR_RE.search(line)
+    color = cm.group(1).capitalize() if cm else ""
+    # Product: prefer bold text (*Polo básico*), then fallback to keyword search
     bold = _re.search(r'\*([^*]+)\*', line)
     if bold:
         product = bold.group(1).strip()
     else:
-        m = _re.search(r'(jean\s+\w+\s*\w*|polo\s+\w+\s*\w*|blusa\s*\w*|vestido\s*\w*|conjunto|short|falda)\b', line, _re.I)
+        m = _re.search(r'(jean\s+\w+\s*\w*|polo\s+\w+\s*\w*|blusa\s*\w*|vestido\s*\w*|conjunto\s*\w*|short|falda)\b', line, _re.I)
         product = m.group(0).strip().title() if m else ""
-    # Talla
-    tm = _TALLA_RE.search(line)
-    talla = (tm.group(1) or tm.group(2)).upper() if tm else ""
-    # Color
-    cm = _COLOR_RE.search(line)
-    color = cm.group(1).capitalize() if cm else ""
+    # Strip talla/color suffixes from product name
+    product = _re.sub(r'\s+talla\s+\S+', '', product, flags=_re.I).strip()
+    product = _re.sub(r'\s+color\s+\S+', '', product, flags=_re.I).strip()
+    product = _re.sub(r'\s+(XS|S|M|L|XL|XXL)\b', '', product, flags=_re.I).strip()
     return json.dumps({"product": product[:60], "talla": talla, "color": color}, ensure_ascii=False)
 
 

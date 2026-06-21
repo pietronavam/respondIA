@@ -88,8 +88,10 @@ async def _process_and_send(customer: str, tenant_id: str, user_message: str):
 
 
 async def _do_process_and_send(customer: str, tenant_id: str, user_message: str):
+    print(f"[BOT] Processing '{user_message[:40]}' for {customer}")
     tenant = get_tenant_by_id(tenant_id)
     if not tenant:
+        print(f"[BOT] Tenant not found: {tenant_id}")
         return
 
     bot_reply, order_data = await get_bot_response(
@@ -119,8 +121,10 @@ async def _do_process_and_send(customer: str, tenant_id: str, user_message: str)
         save_message(tenant_id, customer, user_message, bot_reply)
     except Exception as e:
         print(f"[SAVE MSG ERROR] {e}")
+    print(f"[BOT] Sending to {customer}: {bot_reply[:60]!r}")
     try:
         await _send_whatsapp(customer, bot_reply, _twilio_from(tenant))
+        print(f"[BOT] Sent OK to {customer}")
     except Exception as e:
         print(f"[TWILIO SEND ERROR] {e}")
 
@@ -132,7 +136,7 @@ async def _debounced(customer: str, tenant_id: str, received_at: datetime):
     if not messages:
         return  # A newer message arrived — its task will handle it
     combined = "\n".join(messages)
-    await _do_process_and_send(customer, tenant_id, combined)
+    await _process_and_send(customer, tenant_id, combined)
 
 
 @router.post("/webhook/whatsapp")

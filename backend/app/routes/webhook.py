@@ -89,9 +89,29 @@ async def whatsapp_webhook(
             if verified:
                 mark_order_paid(pending.id)
                 bot_reply = (
-                    f"¡Pago verificado! ✅ Tu pedido {pending.code} está confirmado. "
+                    f"¡Pago verificado! ✅ Tu pedido *{pending.code}* está confirmado. "
                     f"Te avisamos cuando esté listo para envío. 🙌"
                 )
+                # Notify owner via WhatsApp
+                owner_wa = get_setting(tenant.id, "owner_whatsapp") or ""
+                if owner_wa:
+                    try:
+                        from twilio.rest import Client as TwilioClient
+                        twilio = TwilioClient(ACCOUNT_SID, AUTH_TOKEN)
+                        customer_short = From.replace("whatsapp:", "")
+                        twilio.messages.create(
+                            body=(
+                                f"💰 *Pago recibido* — {pending.code}\n"
+                                f"Cliente: {customer_short}\n"
+                                f"Productos: {pending.items}\n"
+                                f"Total: S/{pending.total}\n\n"
+                                f"Pendiente de envío 🚚"
+                            ),
+                            from_=os.getenv("TWILIO_WHATSAPP_NUMBER", "whatsapp:+14155238886"),
+                            to=f"whatsapp:{owner_wa}",
+                        )
+                    except Exception as e:
+                        print(f"[OWNER NOTIFY ERROR] {e}")
             else:
                 bot_reply = (
                     f"No pude verificar el pago 🤔 {reason}. "

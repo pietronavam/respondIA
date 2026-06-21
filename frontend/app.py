@@ -485,6 +485,17 @@ with tab_config:
                                      placeholder="https://checkout.culqi.com/...")
 
     st.markdown("<br>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("**Notificaciones al dueño**")
+        st.caption("Recibe un WhatsApp cada vez que se confirme un pago.")
+        owner_wa_input = st.text_input(
+            "Tu número WhatsApp (con código de país)",
+            value=cfg_data.get("owner_whatsapp", ""),
+            placeholder="Ej: +51987654321",
+        )
+        st.caption("Debes estar unido al sandbox de Twilio para recibir mensajes en modo prueba.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Guardar configuración", type="primary"):
         try:
             api("POST", "/catalog/config", json={
@@ -493,6 +504,7 @@ with tab_config:
                 "yape_number": yape_input,
                 "plin_number": plin_input,
                 "culqi_link": culqi_input,
+                "owner_whatsapp": owner_wa_input.strip(),
             })
             st.session_state.business_cfg = {"business_name": biz_input, "hours": hours_input}
             st.success("Configuración guardada")

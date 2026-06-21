@@ -59,6 +59,7 @@ class BusinessConfig(BaseModel):
     yape_number: str = ""
     plin_number: str = ""
     culqi_link: str = ""
+    owner_whatsapp: str = ""
 
 
 @router.post("/config")
@@ -68,15 +69,17 @@ def save_config(cfg: BusinessConfig, tenant: Tenant = Depends(require_tenant)):
     save_setting(tenant.id, "yape_number", cfg.yape_number)
     save_setting(tenant.id, "plin_number", cfg.plin_number)
     save_setting(tenant.id, "culqi_link", cfg.culqi_link)
+    save_setting(tenant.id, "owner_whatsapp", cfg.owner_whatsapp)
     return {"status": "ok"}
 
 
 @router.get("/config")
 def get_config(tenant: Tenant = Depends(require_tenant)):
     return {
-        "business_name": get_setting(tenant.id, "business_name", "Mi Negocio"),
-        "hours": get_setting(tenant.id, "hours", "Lunes a sábado 9am-7pm"),
-        "yape_number": get_setting(tenant.id, "yape_number", ""),
-        "plin_number": get_setting(tenant.id, "plin_number", ""),
-        "culqi_link": get_setting(tenant.id, "culqi_link", ""),
+        "business_name":   get_setting(tenant.id, "business_name", "Mi Negocio"),
+        "hours":           get_setting(tenant.id, "hours", "Lunes a sábado 9am-7pm"),
+        "yape_number":     get_setting(tenant.id, "yape_number", ""),
+        "plin_number":     get_setting(tenant.id, "plin_number", ""),
+        "culqi_link":      get_setting(tenant.id, "culqi_link", ""),
+        "owner_whatsapp":  get_setting(tenant.id, "owner_whatsapp", ""),
     }

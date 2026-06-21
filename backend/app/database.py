@@ -238,6 +238,59 @@ def save_setting(tenant_id: str, key: str, value: str):
         db.commit()
 
 
+# --- Message Buffer (debouncing) ---
+
+class MessageBuffer(Base):
+    __tablename__ = "message_buffers"
+    id            = Column(Integer, primary_key=True, autoincrement=True)
+    customer      = Column(String, nullable=False, index=True)
+    tenant_id     = Column(String, ForeignKey("tenants.id"), nullable=False)
+    messages      = Column(Text, nullable=False, default="[]")   # JSON list
+    last_received_at = Column(DateTime, nullable=False)
+
+
+def append_to_buffer(customer: str, tenant_id: str, message: str, received_at) -> None:
+    import json
+    with SessionLocal() as db:
+        buf = db.query(MessageBuffer).filter(
+            MessageBuffer.customer  == customer,
+            MessageBuffer.tenant_id == tenant_id,
+        ).first()
+        if buf:
+            msgs = json.loads(buf.messages or "[]")
+            msgs.append(message)
+            buf.messages = json.dumps(msgs)
+            buf.last_received_at = received_at
+        else:
+            db.add(MessageBuffer(
+                customer=customer,
+                tenant_id=tenant_id,
+                messages=json.dumps([message]),
+                last_received_at=received_at,
+            ))
+        db.commit()
+
+
+def get_and_clear_buffer(customer: str, tenant_id: str, expected_time) -> list | None:
+    """Return buffered messages only if no newer message arrived; clears the buffer."""
+    import json
+    with SessionLocal() as db:
+        buf = db.query(MessageBuffer).filter(
+            MessageBuffer.customer  == customer,
+            MessageBuffer.tenant_id == tenant_id,
+        ).first()
+        if not buf:
+            return None
+        # If a newer message arrived (last_received_at > expected_time + 1s), abort
+        diff = (buf.last_received_at - expected_time).total_seconds()
+        if diff > 1:
+            return None
+        msgs = json.loads(buf.messages or "[]")
+        db.delete(buf)
+        db.commit()
+        return msgs
+
+
 # --- Customer Sessions (sandbox routing) ---
 
 def get_customer_session(customer: str) -> CustomerSession | None:

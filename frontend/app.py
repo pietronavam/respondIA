@@ -501,35 +501,57 @@ with tab_config:
 
     st.markdown("<br>", unsafe_allow_html=True)
     with st.container(border=True):
-        st.markdown("**Seguimiento automático de interesados**")
-        st.caption("El bot envía un mensaje personalizado a clientes que mostraron interés pero no compraron.")
+        st.markdown("**Seguimiento de interesados**")
+        st.caption("En la sección Pedidos → Interesados puedes enviar recordatorios manualmente con el botón 📩.")
         fu_enabled = st.toggle(
             "Activar seguimiento automático",
             value=cfg_data.get("followup_enabled", False),
+            help="El bot enviará mensajes automáticamente sin que tengas que hacer nada.",
         )
         fu_days = st.number_input(
-            "Días de espera antes de contactar",
+            "Días de espera antes de contactar automáticamente",
             min_value=1, max_value=30,
             value=int(cfg_data.get("followup_days", 3)),
             disabled=not fu_enabled,
-            help="Número de días sin respuesta antes de que el bot envíe un mensaje de seguimiento.",
+            help="Días sin actividad antes de que el bot envíe el recordatorio.",
         )
         if fu_enabled:
-            st.caption(f"El bot contactará a los interesados después de {int(fu_days)} días inactivos con un mensaje creativo y personalizado.")
+            st.info(
+                f"Automático activo: el bot contacta a interesados después de **{int(fu_days)} días** "
+                f"sin respuesta. El botón 📩 en la tabla sigue disponible para envíos manuales en cualquier momento.",
+                icon="🤖",
+            )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.markdown("**Alertas de bajada de precio**")
+        st.caption("Cuando actualices el catálogo con un precio menor, el bot avisa automáticamente a los clientes que estaban interesados en ese producto.")
+        pd_enabled = st.toggle(
+            "Activar alertas de bajada de precio",
+            value=cfg_data.get("price_drop_enabled", False),
+            help="Al guardar el catálogo, si detecta precios reducidos envía un WhatsApp a los interesados.",
+        )
+        if pd_enabled:
+            st.info(
+                "Activo: al guardar el catálogo con precios menores, los clientes interesados "
+                "recibirán automáticamente un mensaje de oferta.",
+                icon="🏷️",
+            )
 
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Guardar configuración", type="primary"):
         try:
             api("POST", "/catalog/config", json={
-                "business_name":    biz_input,
-                "hours":            hours_input,
-                "yape_number":      yape_input,
-                "yape_name":        yape_name_input.strip(),
-                "plin_number":      plin_input,
-                "culqi_link":       culqi_input,
-                "owner_whatsapp":   owner_wa_input.strip(),
-                "followup_enabled": fu_enabled,
-                "followup_days":    int(fu_days),
+                "business_name":      biz_input,
+                "hours":              hours_input,
+                "yape_number":        yape_input,
+                "yape_name":          yape_name_input.strip(),
+                "plin_number":        plin_input,
+                "culqi_link":         culqi_input,
+                "owner_whatsapp":     owner_wa_input.strip(),
+                "followup_enabled":   fu_enabled,
+                "followup_days":      int(fu_days),
+                "price_drop_enabled": pd_enabled,
             })
             st.session_state.business_cfg = {"business_name": biz_input, "hours": hours_input}
             st.success("Configuración guardada")

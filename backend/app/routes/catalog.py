@@ -8,6 +8,8 @@ router = APIRouter(prefix="/catalog")
 
 
 def _trigger_price_drop_alerts(tenant: Tenant, old_catalog: str, new_catalog: str):
+    if get_setting(tenant.id, "price_drop_enabled", "0") != "1":
+        return
     from ..services.followup_service import process_price_drop_alerts, SANDBOX_FROM
     interests = get_interests(tenant.id)
     if not interests:
@@ -90,6 +92,7 @@ class BusinessConfig(BaseModel):
     owner_whatsapp: str = ""
     followup_enabled: bool = False
     followup_days: int = 3
+    price_drop_enabled: bool = False
 
 
 @router.post("/config")
@@ -103,19 +106,21 @@ def save_config(cfg: BusinessConfig, tenant: Tenant = Depends(require_tenant)):
     save_setting(tenant.id, "owner_whatsapp", cfg.owner_whatsapp)
     save_setting(tenant.id, "followup_enabled", "1" if cfg.followup_enabled else "0")
     save_setting(tenant.id, "followup_days", str(max(1, cfg.followup_days)))
+    save_setting(tenant.id, "price_drop_enabled", "1" if cfg.price_drop_enabled else "0")
     return {"status": "ok"}
 
 
 @router.get("/config")
 def get_config(tenant: Tenant = Depends(require_tenant)):
     return {
-        "business_name":    get_setting(tenant.id, "business_name", "Mi Negocio"),
-        "hours":            get_setting(tenant.id, "hours", "Lunes a sábado 9am-7pm"),
-        "yape_number":      get_setting(tenant.id, "yape_number", ""),
-        "yape_name":        get_setting(tenant.id, "yape_name", ""),
-        "plin_number":      get_setting(tenant.id, "plin_number", ""),
-        "culqi_link":       get_setting(tenant.id, "culqi_link", ""),
-        "owner_whatsapp":   get_setting(tenant.id, "owner_whatsapp", ""),
-        "followup_enabled": get_setting(tenant.id, "followup_enabled", "0") == "1",
-        "followup_days":    int(get_setting(tenant.id, "followup_days", "3")),
+        "business_name":      get_setting(tenant.id, "business_name", "Mi Negocio"),
+        "hours":              get_setting(tenant.id, "hours", "Lunes a sábado 9am-7pm"),
+        "yape_number":        get_setting(tenant.id, "yape_number", ""),
+        "yape_name":          get_setting(tenant.id, "yape_name", ""),
+        "plin_number":        get_setting(tenant.id, "plin_number", ""),
+        "culqi_link":         get_setting(tenant.id, "culqi_link", ""),
+        "owner_whatsapp":     get_setting(tenant.id, "owner_whatsapp", ""),
+        "followup_enabled":   get_setting(tenant.id, "followup_enabled", "0") == "1",
+        "followup_days":      int(get_setting(tenant.id, "followup_days", "3")),
+        "price_drop_enabled": get_setting(tenant.id, "price_drop_enabled", "0") == "1",
     }

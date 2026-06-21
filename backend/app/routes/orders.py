@@ -101,26 +101,35 @@ class StatusUpdate(BaseModel):
 def _detect_shipping_zone(tenant_id: str, customer: str) -> tuple[str, str]:
     """
     Returns (zone_name, delivery_time) by checking conversation history for
-    keywords matching the configured shipping zones.
-    Falls back to zone 1 (Lima Metropolitana) if no match.
+    keywords matching the configured shipping zones (JSON list).
+    Falls back to first zone (or Lima Metropolitana) if no match.
     """
-    zone1_name = get_setting(tenant_id, "shipping_zone1_name") or "Lima Metropolitana"
-    zone1_time = get_setting(tenant_id, "shipping_zone1_time") or "1 a 2 días hábiles"
-    zone2_name = get_setting(tenant_id, "shipping_zone2_name") or "Provincias"
-    zone2_time = get_setting(tenant_id, "shipping_zone2_time") or "3 a 5 días hábiles"
+    import json as _json, unicodedata, re
 
-    history = get_history(tenant_id, customer, limit=20)
-    full_text = " ".join(m["content"] for m in history).lower()
+    raw = get_setting(tenant_id, "shipping_zones", "")
+    try:
+        zones = _json.loads(raw) if raw else []
+    except Exception:
+        zones = []
+    if not zones:
+        zones = [
+            {"name": "Lima Metropolitana", "time": "1 a 2 días hábiles"},
+            {"name": "Provincias",         "time": "3 a 5 días hábiles"},
+        ]
 
-    import unicodedata, re
+    history   = get_history(tenant_id, customer, limit=20)
+    full_text = " ".join(m["content"] for m in history)
 
-    def normalize(t):
+    def normalize(t: str) -> str:
         return unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode().lower()
 
-    zone2_keywords = {w for w in re.findall(r'[a-z]+', normalize(zone2_name)) if len(w) >= 4}
-    if any(kw in normalize(full_text) for kw in zone2_keywords):
-        return zone2_name, zone2_time
-    return zone1_name, zone1_time
+    norm_text = normalize(full_text)
+    # Check zones from last to first — more specific zones (provinces) should come after Lima
+    for zone in reversed(zones[1:]):
+        keywords = {w for w in re.findall(r'[a-z]+', normalize(zone["name"])) if len(w) >= 4}
+        if any(kw in norm_text for kw in keywords):
+            return zone["name"], zone.get("time", "")
+    return zones[0]["name"], zones[0].get("time", "")
 
 
 @router.patch("/{order_id}")

@@ -502,23 +502,65 @@ with tab_config:
     st.markdown("<br>", unsafe_allow_html=True)
     with st.container(border=True):
         st.markdown("**Zonas y tiempos de envío**")
-        st.caption("Al marcar un pedido como enviado, el cliente recibe automáticamente el tiempo estimado según su zona.")
-        col_z1, col_z2 = st.columns(2)
-        with col_z1:
-            zone1_name = st.text_input("Zona 1 — Nombre",
-                value=cfg_data.get("shipping_zone1_name", "Lima Metropolitana"),
-                placeholder="Ej: Lima Metropolitana")
-            zone1_time = st.text_input("Zona 1 — Tiempo estimado",
-                value=cfg_data.get("shipping_zone1_time", "1 a 2 días hábiles"),
-                placeholder="Ej: 1 a 2 días hábiles")
-        with col_z2:
-            zone2_name = st.text_input("Zona 2 — Nombre",
-                value=cfg_data.get("shipping_zone2_name", "Provincias"),
-                placeholder="Ej: Provincias")
-            zone2_time = st.text_input("Zona 2 — Tiempo estimado",
-                value=cfg_data.get("shipping_zone2_time", "3 a 5 días hábiles"),
-                placeholder="Ej: 3 a 5 días hábiles")
-        st.caption("El sistema detecta la zona según lo que el cliente indicó en el chat. Si no detecta ninguna, usa la Zona 1 por defecto.")
+        st.caption("Al marcar un pedido como enviado, el cliente recibe el tiempo estimado según su zona.")
+
+        _zones_key = f"zones_{st.session_state.api_key}"
+        if _zones_key not in st.session_state:
+            _saved = cfg_data.get("shipping_zones") or [
+                {"name": "Lima Metropolitana", "time": "1 a 2 días hábiles"},
+                {"name": "Provincias",         "time": "3 a 5 días hábiles"},
+            ]
+            st.session_state[_zones_key] = [dict(z) for z in _saved]
+
+        _zones = st.session_state[_zones_key]
+
+        # Table header
+        _zh1, _zh2, _zh3 = st.columns([2, 2, 0.4])
+        for _col, _lbl in [(_zh1, "NOMBRE DE LA ZONA"), (_zh2, "TIEMPO ESTIMADO DE ENVÍO"), (_zh3, "")]:
+            _col.markdown(
+                f"<div style='font-size:0.72rem;font-weight:700;color:#64748B;"
+                f"letter-spacing:0.06em;padding:6px 0;background:#F1F5F9;"
+                f"border-bottom:1px solid #E2E8F0;text-align:center'>{_lbl}</div>",
+                unsafe_allow_html=True,
+            )
+
+        # Rows
+        _del_idx = None
+        for _i, _z in enumerate(_zones):
+            _c1, _c2, _c3 = st.columns([2, 2, 0.4])
+            with _c1:
+                st.text_input("nombre", value=_z["name"], key=f"zn_{_zones_key}_{_i}",
+                              placeholder="Ej: Lima Metropolitana", label_visibility="collapsed")
+            with _c2:
+                st.text_input("tiempo", value=_z["time"], key=f"zt_{_zones_key}_{_i}",
+                              placeholder="Ej: 1 a 2 días hábiles", label_visibility="collapsed")
+            with _c3:
+                st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
+                if len(_zones) > 1 and st.button("✕", key=f"zdel_{_zones_key}_{_i}", use_container_width=True):
+                    _del_idx = _i
+
+        if _del_idx is not None:
+            _current = [{"name": st.session_state.get(f"zn_{_zones_key}_{j}", _zones[j]["name"]),
+                         "time": st.session_state.get(f"zt_{_zones_key}_{j}", _zones[j]["time"])}
+                        for j in range(len(_zones)) if j != _del_idx]
+            for j in range(len(_zones) + 2):
+                st.session_state.pop(f"zn_{_zones_key}_{j}", None)
+                st.session_state.pop(f"zt_{_zones_key}_{j}", None)
+            st.session_state[_zones_key] = _current
+            st.rerun()
+
+        if st.button("+ Agregar zona", key="zone_add"):
+            _current = [{"name": st.session_state.get(f"zn_{_zones_key}_{j}", _zones[j]["name"]),
+                         "time": st.session_state.get(f"zt_{_zones_key}_{j}", _zones[j]["time"])}
+                        for j in range(len(_zones))]
+            _current.append({"name": "", "time": ""})
+            for j in range(len(_zones) + 2):
+                st.session_state.pop(f"zn_{_zones_key}_{j}", None)
+                st.session_state.pop(f"zt_{_zones_key}_{j}", None)
+            st.session_state[_zones_key] = _current
+            st.rerun()
+
+        st.caption("El sistema detecta la zona por las palabras que el cliente usó en el chat. Si no encuentra coincidencia, usa la primera zona.")
 
     st.markdown("<br>", unsafe_allow_html=True)
     with st.container(border=True):
@@ -562,21 +604,26 @@ with tab_config:
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Guardar configuración", type="primary"):
         try:
+            _saved_zones = [
+                {
+                    "name": st.session_state.get(f"zn_{_zones_key}_{j}", _zones[j]["name"]).strip(),
+                    "time": st.session_state.get(f"zt_{_zones_key}_{j}", _zones[j]["time"]).strip(),
+                }
+                for j in range(len(_zones))
+                if st.session_state.get(f"zn_{_zones_key}_{j}", _zones[j]["name"]).strip()
+            ]
             api("POST", "/catalog/config", json={
-                "business_name":       biz_input,
-                "hours":               hours_input,
-                "yape_number":         yape_input,
-                "yape_name":           yape_name_input.strip(),
-                "plin_number":         plin_input,
-                "culqi_link":          culqi_input,
-                "owner_whatsapp":      owner_wa_input.strip(),
-                "followup_enabled":    fu_enabled,
-                "followup_days":       int(fu_days),
-                "price_drop_enabled":  pd_enabled,
-                "shipping_zone1_name": zone1_name.strip(),
-                "shipping_zone1_time": zone1_time.strip(),
-                "shipping_zone2_name": zone2_name.strip(),
-                "shipping_zone2_time": zone2_time.strip(),
+                "business_name":      biz_input,
+                "hours":              hours_input,
+                "yape_number":        yape_input,
+                "yape_name":          yape_name_input.strip(),
+                "plin_number":        plin_input,
+                "culqi_link":         culqi_input,
+                "owner_whatsapp":     owner_wa_input.strip(),
+                "followup_enabled":   fu_enabled,
+                "followup_days":      int(fu_days),
+                "price_drop_enabled": pd_enabled,
+                "shipping_zones":     _saved_zones,
             })
             st.session_state.business_cfg = {"business_name": biz_input, "hours": hours_input}
             st.success("Configuración guardada")

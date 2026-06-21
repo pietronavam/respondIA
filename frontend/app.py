@@ -517,10 +517,12 @@ with tab_config:
         # Table header
         _zh1, _zh2, _zh3 = st.columns([2, 2, 0.4])
         for _col, _lbl in [(_zh1, "NOMBRE DE LA ZONA"), (_zh2, "TIEMPO ESTIMADO DE ENVÍO"), (_zh3, "")]:
+            _bg  = "#F1F5F9"    if _lbl else "transparent"
+            _brd = "border-bottom:1px solid #E2E8F0;" if _lbl else ""
             _col.markdown(
                 f"<div style='font-size:0.72rem;font-weight:700;color:#64748B;"
-                f"letter-spacing:0.06em;padding:6px 0;background:#F1F5F9;"
-                f"border-bottom:1px solid #E2E8F0;text-align:center'>{_lbl}</div>",
+                f"letter-spacing:0.06em;padding:6px 0;background:{_bg};"
+                f"{_brd}text-align:center'>{_lbl}</div>",
                 unsafe_allow_html=True,
             )
 

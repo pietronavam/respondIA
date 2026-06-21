@@ -107,7 +107,10 @@ async def _process_and_send(customer: str, tenant_id: str, user_message: str):
     elif _INTEREST_PRICE.search(bot_reply) and _INTEREST_PRODUCT.search(bot_reply):
         upsert_interest(tenant_id, customer, _extract_interest(bot_reply))
 
-    save_message(tenant_id, customer, user_message, bot_reply)
+    try:
+        save_message(tenant_id, customer, user_message, bot_reply)
+    except Exception as e:
+        print(f"[SAVE MSG ERROR] {e}")
     try:
         await _send_whatsapp(customer, bot_reply, _twilio_from(tenant))
     except Exception as e:

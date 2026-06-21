@@ -40,16 +40,27 @@ def health():
     return {"ok": True}
 
 
-@app.get("/debug/tenant/{phone}")
-def debug_tenant(phone: str):
-    from .database import get_tenant_by_phone, get_tenant_by_slug, SessionLocal, Tenant
-    t_phone = get_tenant_by_phone(f"whatsapp:{phone}")
-    t_slug  = get_tenant_by_slug("NABILAHOME")
+@app.delete("/admin/cleanup-duplicate-tenants")
+def cleanup_duplicate_tenants():
+    """Remove duplicate tenants keeping only the one with a real phone number per slug."""
+    from .database import SessionLocal, Tenant, Message, Order
+    from sqlalchemy import func
+    deleted = []
     with SessionLocal() as db:
-        all_t = db.query(Tenant).all()
-        tenants_info = [{"id": t.id[:8], "name": t.name, "slug": t.slug, "is_active": t.is_active} for t in all_t]
-    return {
-        "by_phone": {"id": t_phone.id[:8], "name": t_phone.name} if t_phone else None,
-        "by_slug":  {"id": t_slug.id[:8],  "name": t_slug.name}  if t_slug  else None,
-        "all_tenants": tenants_info,
-    }
+        slugs = [r[0] for r in db.query(Tenant.slug).group_by(Tenant.slug).having(func.count() > 1).all()]
+        for slug in slugs:
+            dupes = db.query(Tenant).filter(Tenant.slug == slug).order_by(Tenant.created_at).all()
+            # Keep the one with a real phone_number (not sandbox:) and most messages
+            def score(t):
+                is_real = 0 if t.phone_number.startswith("sandbox:") else 1
+                msg_count = db.query(Message).filter(Message.tenant_id == t.id).count()
+                return (is_real, msg_count)
+            dupes_sorted = sorted(dupes, key=score, reverse=True)
+            keep = dupes_sorted[0]
+            for t in dupes_sorted[1:]:
+                db.query(Message).filter(Message.tenant_id == t.id).delete()
+                db.query(Order).filter(Order.tenant_id == t.id).delete()
+                db.delete(t)
+                deleted.append({"deleted": t.id[:8], "kept": keep.id[:8]})
+        db.commit()
+    return {"deleted": deleted}

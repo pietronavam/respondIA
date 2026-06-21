@@ -542,7 +542,6 @@ with tab_orders:
     with col_refresh:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Actualizar 🔄", key="refresh_orders", use_container_width=True):
-            st.session_state.pop("orders_cache", None)
             st.rerun()
 
     try:
@@ -552,6 +551,13 @@ with tab_orders:
     except Exception:
         order_list = []
 
+    try:
+        interest_list = api("GET", "/orders/interests").json()
+        if not isinstance(interest_list, list):
+            interest_list = []
+    except Exception:
+        interest_list = []
+
     BADGE_CLASS = {
         "pendiente": "badge-pendiente",
         "pagado":    "badge-pagado",
@@ -559,20 +565,61 @@ with tab_orders:
         "entregado": "badge-entregado",
     }
 
-    pagados   = [o for o in order_list if o["status"] == "pagado"]
-    pendientes = [o for o in order_list if o["status"] == "pendiente"]
-    enviados  = [o for o in order_list if o["status"] in ("enviado", "entregado")]
+    SECTIONS = ["Interesados", "Pendientes de pago", "Pagados — pendientes de envío", "Enviados / Entregados"]
+    if "orders_tab" not in st.session_state:
+        st.session_state.orders_tab = "Pagados — pendientes de envío"
 
     seccion = st.radio(
         "sección",
-        ["Pagados — pendientes de envío", "Pendientes de pago", "Enviados / Entregados"],
-        index=0,
+        SECTIONS,
+        index=SECTIONS.index(st.session_state.orders_tab),
         horizontal=True,
         label_visibility="collapsed",
     )
+    st.session_state.orders_tab = seccion
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-    if seccion == "Pagados — pendientes de envío":
+    pagados    = [o for o in order_list if o["status"] == "pagado"]
+    pendientes = [o for o in order_list if o["status"] == "pendiente"]
+    enviados   = [o for o in order_list if o["status"] in ("enviado", "entregado")]
+
+    if seccion == "Interesados":
+        if not interest_list:
+            st.info("Aún no hay clientes con interés detectado. Aparecen aquí cuando el bot menciona productos y precios.", icon="👀")
+        else:
+            hi_cols = st.columns([1.5, 3, 1.6, 1.4])
+            for col, label in zip(hi_cols, ["CLIENTE", "PREGUNTÓ POR", "DESDE", "ACCIÓN"]):
+                col.markdown(
+                    f"<div style='font-size:0.72rem;font-weight:700;color:#64748B;"
+                    f"letter-spacing:0.06em;padding:6px 0;background:#F1F5F9;"
+                    f"border-bottom:1px solid #E2E8F0;text-align:center'>{label}</div>",
+                    unsafe_allow_html=True,
+                )
+            st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)
+            C, E = "<div style='text-align:center;padding-top:6px'>", "</div>"
+            for lead in interest_list:
+                customer_short = lead["customer"].replace("whatsapp:+51", "+51 ").replace("whatsapp:", "")
+                date_str = lead["created_at"][:16].replace("T", " ") if lead["created_at"] else "—"
+                c1, c2, c3, c4 = st.columns([1.5, 3, 1.6, 1.4])
+                with c1:
+                    st.markdown(f"{C}<span class='order-meta'>{customer_short}</span>{E}", unsafe_allow_html=True)
+                with c2:
+                    st.markdown(f"{C}<span style='font-size:0.85rem'>{lead['last_product'] or '—'}</span>{E}", unsafe_allow_html=True)
+                with c3:
+                    st.markdown(f"{C}<span class='order-meta'>{date_str}</span>{E}", unsafe_allow_html=True)
+                with c4:
+                    if st.button("Quitar", key=f"rm_lead_{lead['customer']}", use_container_width=True):
+                        try:
+                            import urllib.parse
+                            encoded = urllib.parse.quote(lead["customer"], safe="")
+                            api("DELETE", f"/orders/interests/{encoded}")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error: {e}")
+                st.markdown("<hr style='margin:4px 0;border-color:#F1F5F9'>", unsafe_allow_html=True)
+        st.stop()
+
+    elif seccion == "Pagados — pendientes de envío":
         vista = pagados
         accion_label = "Marcar enviado"
         accion_status = "enviado"

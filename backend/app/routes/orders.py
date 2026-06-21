@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from ..auth import require_tenant
-from ..database import Tenant, get_orders, update_order_status
+from ..database import Tenant, get_orders, update_order_status, get_interests, delete_interest
 
 router = APIRouter(prefix="/orders")
 
@@ -23,6 +23,24 @@ def list_orders(tenant: Tenant = Depends(require_tenant)):
         }
         for o in orders
     ]
+
+
+@router.get("/interests")
+def list_interests(tenant: Tenant = Depends(require_tenant)):
+    return [
+        {
+            "customer":     i.customer,
+            "last_product": i.last_product or "",
+            "created_at":   str(i.created_at),
+        }
+        for i in get_interests(tenant.id)
+    ]
+
+
+@router.delete("/interests/{customer}")
+def remove_interest(customer: str, tenant: Tenant = Depends(require_tenant)):
+    delete_interest(tenant.id, customer)
+    return {"status": "removed"}
 
 
 class StatusUpdate(BaseModel):

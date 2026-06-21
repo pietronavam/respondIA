@@ -2,7 +2,7 @@ import os
 import re
 import uuid
 import unicodedata
-from sqlalchemy import create_engine, Column, String, Integer, DateTime, Text, ForeignKey, Boolean, text
+from sqlalchemy import create_engine, Column, String, Integer, DateTime, Text, ForeignKey, Boolean, text, UniqueConstraint
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.sql import func
 
@@ -236,6 +236,53 @@ def save_setting(tenant_id: str, key: str, value: str):
         else:
             db.add(TenantSetting(tenant_id=tenant_id, key=key, value=value))
         db.commit()
+
+
+# --- Interests (leads) ---
+
+class Interest(Base):
+    __tablename__ = "interests"
+    id           = Column(Integer, primary_key=True, autoincrement=True)
+    tenant_id    = Column(String, ForeignKey("tenants.id"), nullable=False)
+    customer     = Column(String, nullable=False)
+    last_product = Column(String, nullable=True)   # snippet of what they asked about
+    created_at   = Column(DateTime, server_default=func.now())
+    updated_at   = Column(DateTime, server_default=func.now())
+    __table_args__ = (UniqueConstraint("tenant_id", "customer"),)
+
+
+def upsert_interest(tenant_id: str, customer: str, product_hint: str = "") -> None:
+    with SessionLocal() as db:
+        row = db.query(Interest).filter(
+            Interest.tenant_id == tenant_id,
+            Interest.customer  == customer,
+        ).first()
+        if row:
+            if product_hint:
+                row.last_product = product_hint[:120]
+        else:
+            db.add(Interest(tenant_id=tenant_id, customer=customer,
+                            last_product=product_hint[:120] if product_hint else ""))
+        db.commit()
+
+
+def delete_interest(tenant_id: str, customer: str) -> None:
+    with SessionLocal() as db:
+        db.query(Interest).filter(
+            Interest.tenant_id == tenant_id,
+            Interest.customer  == customer,
+        ).delete()
+        db.commit()
+
+
+def get_interests(tenant_id: str) -> list:
+    with SessionLocal() as db:
+        rows = db.query(Interest).filter(
+            Interest.tenant_id == tenant_id
+        ).order_by(Interest.updated_at.desc()).all()
+        for r in rows:
+            db.expunge(r)
+        return rows
 
 
 # --- Message Buffer (debouncing) ---

@@ -15,6 +15,7 @@ from ..database import (
     get_customer_session, upsert_customer_session,
     create_order, get_pending_order, mark_order_paid, get_setting,
     append_to_buffer, get_and_clear_buffer,
+    upsert_interest, delete_interest,
 )
 from ..services.vision_service import verify_payment_screenshot
 
@@ -23,7 +24,9 @@ router = APIRouter()
 ACCOUNT_SID   = os.getenv("TWILIO_ACCOUNT_SID", "")
 AUTH_TOKEN    = os.getenv("TWILIO_AUTH_TOKEN", "")
 SANDBOX_FROM  = os.getenv("TWILIO_WHATSAPP_NUMBER", "whatsapp:+14155238886")
-DEBOUNCE_SECS = 4.0
+DEBOUNCE_SECS = 7.0
+_INTEREST_PRICE   = _re.compile(r'S/\d+')
+_INTEREST_PRODUCT = _re.compile(r'polo|jean|blusa|vestido|talla|color|disponible|precio|stock|conjunto|short', _re.I)
 
 
 def _empty_twiml():
@@ -65,8 +68,11 @@ async def _process_and_send(customer: str, tenant_id: str, user_message: str):
             items = str(order_data.get("items", "Pedido"))
             order = create_order(tenant_id=tenant_id, customer=customer, items=items, total=total)
             bot_reply = f"{bot_reply}\n\n📦 Código de pedido: *{order.code}*"
+            delete_interest(tenant_id, customer)   # moved to pendiente de pago
         except Exception as e:
             print(f"[ORDER ERROR] {e}\n{traceback.format_exc()}")
+    elif _INTEREST_PRICE.search(bot_reply) and _INTEREST_PRODUCT.search(bot_reply):
+        upsert_interest(tenant_id, customer, user_message[:120])
 
     save_message(tenant_id, customer, user_message, bot_reply)
     try:

@@ -101,6 +101,10 @@ def init_db():
             except Exception:
                 pass
 
+    # Backfill NULL is_active → True for tenants created before the column existed
+    with engine.begin() as conn:
+        conn.execute(text("UPDATE tenants SET is_active = true WHERE is_active IS NULL"))
+
     # Backfill slugs for existing tenants that don't have one
     with SessionLocal() as db:
         for tenant in db.query(Tenant).filter(Tenant.slug == None).all():

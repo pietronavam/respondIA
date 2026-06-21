@@ -118,7 +118,6 @@ def get_tenant_by_phone(phone: str) -> Tenant | None:
     with SessionLocal() as db:
         return db.query(Tenant).filter(
             Tenant.phone_number == phone,
-            Tenant.is_active == True
         ).first()
 
 
@@ -129,7 +128,7 @@ def get_tenant_by_api_key(api_key: str) -> Tenant | None:
 
 def get_tenant_by_id(tenant_id: str) -> Tenant | None:
     with SessionLocal() as db:
-        t = db.query(Tenant).filter(Tenant.id == tenant_id, Tenant.is_active == True).first()
+        t = db.query(Tenant).filter(Tenant.id == tenant_id).first()
         if t:
             db.expunge(t)
         return t
@@ -137,10 +136,7 @@ def get_tenant_by_id(tenant_id: str) -> Tenant | None:
 
 def get_tenant_by_slug(slug: str) -> Tenant | None:
     with SessionLocal() as db:
-        t = db.query(Tenant).filter(
-            Tenant.slug == slug.upper(),
-            Tenant.is_active == True,
-        ).first()
+        t = db.query(Tenant).filter(Tenant.slug == slug.upper()).first()
         if t:
             db.expunge(t)
         return t
@@ -169,7 +165,7 @@ def create_tenant(name: str, phone_number: str,
 
 def get_tenant_by_email(email: str):
     with SessionLocal() as db:
-        t = db.query(Tenant).filter(Tenant.email == email, Tenant.is_active == True).first()
+        t = db.query(Tenant).filter(Tenant.email == email).first()
         if t:
             db.expunge(t)
         return t

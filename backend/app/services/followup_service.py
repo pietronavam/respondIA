@@ -39,12 +39,7 @@ def generate_followup_message(
     month = datetime.utcnow().month
     season_ctx = _MONTH_CONTEXT.get(month, "")
 
-    detail_parts = []
-    if talla:
-        detail_parts.append(f"talla {talla}")
-    if color:
-        detail_parts.append(f"color {color}")
-    detail = f" ({', '.join(detail_parts)})" if detail_parts else ""
+    detail = f" ({color})" if color else ""
 
     prompt = f"""Eres el asistente de ventas de *{business_name}* en WhatsApp.
 Un cliente mostró interés en *{product}{detail}* hace {days_since} días pero no concretó la compra.
@@ -61,6 +56,7 @@ Criterios:
 - Si la temporada no aplica claramente, elige OTRO ángulo: escasez ("quedan pocas unidades"), precio especial, estilo o un tono cálido/divertido.
 - Sé creativo, natural, breve. Tono amigable, no invasivo.
 - Usa formato WhatsApp: *negrita* con asterisco simple. Sin listas.
+- NO menciones la talla en el mensaje.
 - NO empieces con "Hola" genérico. Engancha desde la primera palabra.
 - Termina con una pregunta o llamada a la acción suave.
 
@@ -169,12 +165,7 @@ def generate_price_drop_message(
     talla: str = "",
     color: str = "",
 ) -> str:
-    detail_parts = []
-    if talla:
-        detail_parts.append(f"talla {talla}")
-    if color:
-        detail_parts.append(f"color {color}")
-    detail = f" ({', '.join(detail_parts)})" if detail_parts else ""
+    detail = f" ({color})" if color else ""
     ahorro = round(old_price - new_price, 2)
 
     prompt = f"""Eres el asistente de ventas de *{business_name}* en WhatsApp.
@@ -187,6 +178,7 @@ Criterios:
 - Sé entusiasta pero natural. Tono amigable, no de spam.
 - Usa formato WhatsApp: *negrita*. Sin listas.
 - Menciona el precio nuevo y lo que se ahorra.
+- NO menciones la talla en el mensaje.
 - Termina con una llamada a la acción directa.
 - NO empieces con "Hola" genérico.
 

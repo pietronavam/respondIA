@@ -566,13 +566,21 @@ with tab_orders:
     }
 
     SECTIONS = ["Interesados", "Pendientes de pago", "Pagados — pendientes de envío", "Enviados / Entregados"]
-    if "orders_tab" not in st.session_state:
-        st.session_state.orders_tab = "Pagados — pendientes de envío"
+    if "_tab_idx" not in st.session_state:
+        st.session_state["_tab_idx"] = 2  # default: Pagados — pendientes de envío
+
+    def _on_tab_change():
+        try:
+            st.session_state["_tab_idx"] = SECTIONS.index(st.session_state["_tab_radio"])
+        except (ValueError, KeyError):
+            pass
 
     seccion = st.radio(
         "sección",
         SECTIONS,
-        key="orders_tab",
+        index=st.session_state["_tab_idx"],
+        key="_tab_radio",
+        on_change=_on_tab_change,
         horizontal=True,
         label_visibility="collapsed",
     )
@@ -587,7 +595,7 @@ with tab_orders:
             st.info("Aún no hay clientes con interés detectado. Aparecen aquí cuando el bot menciona productos y precios.", icon="👀")
         else:
             hi_cols = st.columns([1.5, 3, 1.6, 1.4])
-            for col, label in zip(hi_cols, ["CLIENTE", "PREGUNTÓ POR", "DESDE", "ACCIÓN"]):
+            for col, label in zip(hi_cols, ["CLIENTE", "PRODUCTO DE INTERÉS", "DESDE", "ACCIÓN"]):
                 col.markdown(
                     f"<div style='font-size:0.72rem;font-weight:700;color:#64748B;"
                     f"letter-spacing:0.06em;padding:6px 0;background:#F1F5F9;"

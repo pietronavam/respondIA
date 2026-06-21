@@ -6,9 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from ..auth import require_tenant
 from ..database import (
-    Tenant, get_orders, update_order_status,
+    Tenant, get_orders, update_order_status, get_order_by_id,
     get_interests, delete_interest, mark_followed_up,
-    get_setting,
+    get_setting, get_history,
 )
 
 router = APIRouter(prefix="/orders")
@@ -98,11 +98,68 @@ class StatusUpdate(BaseModel):
     status: str
 
 
+def _detect_shipping_zone(tenant_id: str, customer: str) -> tuple[str, str]:
+    """
+    Returns (zone_name, delivery_time) by checking conversation history for
+    keywords matching the configured shipping zones.
+    Falls back to zone 1 (Lima Metropolitana) if no match.
+    """
+    zone1_name = get_setting(tenant_id, "shipping_zone1_name") or "Lima Metropolitana"
+    zone1_time = get_setting(tenant_id, "shipping_zone1_time") or "1 a 2 días hábiles"
+    zone2_name = get_setting(tenant_id, "shipping_zone2_name") or "Provincias"
+    zone2_time = get_setting(tenant_id, "shipping_zone2_time") or "3 a 5 días hábiles"
+
+    history = get_history(tenant_id, customer, limit=20)
+    full_text = " ".join(m["content"] for m in history).lower()
+
+    import unicodedata, re
+
+    def normalize(t):
+        return unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode().lower()
+
+    zone2_keywords = {w for w in re.findall(r'[a-z]+', normalize(zone2_name)) if len(w) >= 4}
+    if any(kw in normalize(full_text) for kw in zone2_keywords):
+        return zone2_name, zone2_time
+    return zone1_name, zone1_time
+
+
 @router.patch("/{order_id}")
-def patch_order(order_id: int, body: StatusUpdate, tenant: Tenant = Depends(require_tenant)):
+async def patch_order(order_id: int, body: StatusUpdate, tenant: Tenant = Depends(require_tenant)):
     if body.status not in STATUS_OPTIONS:
         raise HTTPException(400, f"Estado inválido. Opciones: {STATUS_OPTIONS}")
+
+    order = get_order_by_id(order_id, tenant.id)
+    if not order:
+        raise HTTPException(404, "Pedido no encontrado")
+
     ok = update_order_status(order_id, tenant.id, body.status)
     if not ok:
         raise HTTPException(404, "Pedido no encontrado")
+
+    # Notify customer via WhatsApp
+    if body.status in ("enviado", "entregado"):
+        from ..services.followup_service import send_followup, SANDBOX_FROM
+        phone = tenant.phone_number or ""
+        from_wa = phone if (phone.startswith("whatsapp:") and "sandbox" not in phone) else SANDBOX_FROM
+        business_name = get_setting(tenant.id, "business_name") or tenant.name
+
+        if body.status == "enviado":
+            zone_name, delivery_time = await asyncio.to_thread(
+                _detect_shipping_zone, tenant.id, order.customer
+            )
+            message = (
+                f"🚚 ¡Tu pedido *{order.code}* está en camino!\n"
+                f"Zona de entrega: *{zone_name}*\n"
+                f"Tiempo estimado: *{delivery_time}*\n\n"
+                f"Cualquier consulta por aquí. ¡Gracias por tu compra! 🙌"
+            )
+        else:  # entregado
+            message = (
+                f"✅ ¡Tu pedido *{order.code}* ha sido entregado!\n"
+                f"Esperamos que lo disfrutes mucho 😊\n"
+                f"Si tienes alguna consulta, escríbenos. — *{business_name}*"
+            )
+
+        await asyncio.to_thread(send_followup, order.customer, message, from_wa)
+
     return {"status": "updated"}

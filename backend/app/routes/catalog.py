@@ -93,6 +93,10 @@ class BusinessConfig(BaseModel):
     followup_enabled: bool = False
     followup_days: int = 3
     price_drop_enabled: bool = False
+    shipping_zone1_name: str = "Lima Metropolitana"
+    shipping_zone1_time: str = "1 a 2 días hábiles"
+    shipping_zone2_name: str = "Provincias"
+    shipping_zone2_time: str = "3 a 5 días hábiles"
 
 
 @router.post("/config")
@@ -107,20 +111,28 @@ def save_config(cfg: BusinessConfig, tenant: Tenant = Depends(require_tenant)):
     save_setting(tenant.id, "followup_enabled", "1" if cfg.followup_enabled else "0")
     save_setting(tenant.id, "followup_days", str(max(1, cfg.followup_days)))
     save_setting(tenant.id, "price_drop_enabled", "1" if cfg.price_drop_enabled else "0")
+    save_setting(tenant.id, "shipping_zone1_name", cfg.shipping_zone1_name or "Lima Metropolitana")
+    save_setting(tenant.id, "shipping_zone1_time", cfg.shipping_zone1_time or "1 a 2 días hábiles")
+    save_setting(tenant.id, "shipping_zone2_name", cfg.shipping_zone2_name or "Provincias")
+    save_setting(tenant.id, "shipping_zone2_time", cfg.shipping_zone2_time or "3 a 5 días hábiles")
     return {"status": "ok"}
 
 
 @router.get("/config")
 def get_config(tenant: Tenant = Depends(require_tenant)):
     return {
-        "business_name":      get_setting(tenant.id, "business_name", "Mi Negocio"),
-        "hours":              get_setting(tenant.id, "hours", "Lunes a sábado 9am-7pm"),
-        "yape_number":        get_setting(tenant.id, "yape_number", ""),
-        "yape_name":          get_setting(tenant.id, "yape_name", ""),
-        "plin_number":        get_setting(tenant.id, "plin_number", ""),
-        "culqi_link":         get_setting(tenant.id, "culqi_link", ""),
-        "owner_whatsapp":     get_setting(tenant.id, "owner_whatsapp", ""),
-        "followup_enabled":   get_setting(tenant.id, "followup_enabled", "0") == "1",
-        "followup_days":      int(get_setting(tenant.id, "followup_days", "3")),
-        "price_drop_enabled": get_setting(tenant.id, "price_drop_enabled", "0") == "1",
+        "business_name":       get_setting(tenant.id, "business_name", "Mi Negocio"),
+        "hours":               get_setting(tenant.id, "hours", "Lunes a sábado 9am-7pm"),
+        "yape_number":         get_setting(tenant.id, "yape_number", ""),
+        "yape_name":           get_setting(tenant.id, "yape_name", ""),
+        "plin_number":         get_setting(tenant.id, "plin_number", ""),
+        "culqi_link":          get_setting(tenant.id, "culqi_link", ""),
+        "owner_whatsapp":      get_setting(tenant.id, "owner_whatsapp", ""),
+        "followup_enabled":    get_setting(tenant.id, "followup_enabled", "0") == "1",
+        "followup_days":       int(get_setting(tenant.id, "followup_days", "3")),
+        "price_drop_enabled":  get_setting(tenant.id, "price_drop_enabled", "0") == "1",
+        "shipping_zone1_name": get_setting(tenant.id, "shipping_zone1_name", "Lima Metropolitana"),
+        "shipping_zone1_time": get_setting(tenant.id, "shipping_zone1_time", "1 a 2 días hábiles"),
+        "shipping_zone2_name": get_setting(tenant.id, "shipping_zone2_name", "Provincias"),
+        "shipping_zone2_time": get_setting(tenant.id, "shipping_zone2_time", "3 a 5 días hábiles"),
     }

@@ -501,6 +501,27 @@ with tab_config:
 
     st.markdown("<br>", unsafe_allow_html=True)
     with st.container(border=True):
+        st.markdown("**Zonas y tiempos de envío**")
+        st.caption("Al marcar un pedido como enviado, el cliente recibe automáticamente el tiempo estimado según su zona.")
+        col_z1, col_z2 = st.columns(2)
+        with col_z1:
+            zone1_name = st.text_input("Zona 1 — Nombre",
+                value=cfg_data.get("shipping_zone1_name", "Lima Metropolitana"),
+                placeholder="Ej: Lima Metropolitana")
+            zone1_time = st.text_input("Zona 1 — Tiempo estimado",
+                value=cfg_data.get("shipping_zone1_time", "1 a 2 días hábiles"),
+                placeholder="Ej: 1 a 2 días hábiles")
+        with col_z2:
+            zone2_name = st.text_input("Zona 2 — Nombre",
+                value=cfg_data.get("shipping_zone2_name", "Provincias"),
+                placeholder="Ej: Provincias")
+            zone2_time = st.text_input("Zona 2 — Tiempo estimado",
+                value=cfg_data.get("shipping_zone2_time", "3 a 5 días hábiles"),
+                placeholder="Ej: 3 a 5 días hábiles")
+        st.caption("El sistema detecta la zona según lo que el cliente indicó en el chat. Si no detecta ninguna, usa la Zona 1 por defecto.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.container(border=True):
         st.markdown("**Seguimiento de interesados**")
         st.caption("En la sección Pedidos → Interesados puedes enviar recordatorios manualmente con el botón 📩.")
         fu_enabled = st.toggle(
@@ -542,16 +563,20 @@ with tab_config:
     if st.button("Guardar configuración", type="primary"):
         try:
             api("POST", "/catalog/config", json={
-                "business_name":      biz_input,
-                "hours":              hours_input,
-                "yape_number":        yape_input,
-                "yape_name":          yape_name_input.strip(),
-                "plin_number":        plin_input,
-                "culqi_link":         culqi_input,
-                "owner_whatsapp":     owner_wa_input.strip(),
-                "followup_enabled":   fu_enabled,
-                "followup_days":      int(fu_days),
-                "price_drop_enabled": pd_enabled,
+                "business_name":       biz_input,
+                "hours":               hours_input,
+                "yape_number":         yape_input,
+                "yape_name":           yape_name_input.strip(),
+                "plin_number":         plin_input,
+                "culqi_link":          culqi_input,
+                "owner_whatsapp":      owner_wa_input.strip(),
+                "followup_enabled":    fu_enabled,
+                "followup_days":       int(fu_days),
+                "price_drop_enabled":  pd_enabled,
+                "shipping_zone1_name": zone1_name.strip(),
+                "shipping_zone1_time": zone1_time.strip(),
+                "shipping_zone2_name": zone2_name.strip(),
+                "shipping_zone2_time": zone2_time.strip(),
             })
             st.session_state.business_cfg = {"business_name": biz_input, "hours": hours_input}
             st.success("Configuración guardada")
@@ -646,10 +671,12 @@ with tab_orders:
             LEAD_LABELS = ["CLIENTE", "PRODUCTO", "TALLA", "COLOR", "DESDE", "RECORDATORIO", ""]
             hi_cols = st.columns(LEAD_COLS)
             for col, label in zip(hi_cols, LEAD_LABELS):
+                bg = "#F1F5F9" if label else "transparent"
+                border = "border-bottom:1px solid #E2E8F0;" if label else ""
                 col.markdown(
                     f"<div style='font-size:0.72rem;font-weight:700;color:#64748B;"
-                    f"letter-spacing:0.06em;padding:6px 0;background:#F1F5F9;"
-                    f"border-bottom:1px solid #E2E8F0;text-align:center'>{label}</div>",
+                    f"letter-spacing:0.06em;padding:6px 0;background:{bg};"
+                    f"{border}text-align:center'>{label}</div>",
                     unsafe_allow_html=True,
                 )
             st.markdown("<div style='height:4px'></div>", unsafe_allow_html=True)

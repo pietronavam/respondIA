@@ -417,6 +417,14 @@ def create_order(tenant_id: str, customer: str, items: str, total: int) -> Order
         return order
 
 
+def get_order_by_id(order_id: int, tenant_id: str) -> Order | None:
+    with SessionLocal() as db:
+        o = db.query(Order).filter(Order.id == order_id, Order.tenant_id == tenant_id).first()
+        if o:
+            db.expunge(o)
+        return o
+
+
 def get_orders(tenant_id: str) -> list[Order]:
     with SessionLocal() as db:
         orders = db.query(Order).filter(

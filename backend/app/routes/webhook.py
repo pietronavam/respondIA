@@ -74,12 +74,20 @@ def _twilio_from(tenant) -> str:
 
 
 async def _send_whatsapp(to: str, body: str, from_: str):
-    twilio = TwilioClient(ACCOUNT_SID, AUTH_TOKEN)
-    twilio.messages.create(body=body, from_=from_, to=to)
+    def _sync():
+        TwilioClient(ACCOUNT_SID, AUTH_TOKEN).messages.create(body=body, from_=from_, to=to)
+    await asyncio.to_thread(_sync)
 
 
 async def _process_and_send(customer: str, tenant_id: str, user_message: str):
     """Run bot, handle orders, send reply via Twilio API."""
+    try:
+        await _do_process_and_send(customer, tenant_id, user_message)
+    except Exception as e:
+        print(f"[PROCESS ERROR] {customer}: {e}\n{traceback.format_exc()}")
+
+
+async def _do_process_and_send(customer: str, tenant_id: str, user_message: str):
     tenant = get_tenant_by_id(tenant_id)
     if not tenant:
         return
@@ -124,7 +132,7 @@ async def _debounced(customer: str, tenant_id: str, received_at: datetime):
     if not messages:
         return  # A newer message arrived — its task will handle it
     combined = "\n".join(messages)
-    await _process_and_send(customer, tenant_id, combined)
+    await _do_process_and_send(customer, tenant_id, combined)
 
 
 @router.post("/webhook/whatsapp")

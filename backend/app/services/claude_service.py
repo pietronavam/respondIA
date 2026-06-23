@@ -10,7 +10,7 @@ client = OpenAI(
 )
 
 SYSTEM_TEMPLATE = """Eres el asistente virtual de {business_name}, atendiendo clientes por WhatsApp.
-Responde de forma amigable, breve y directa (máximo 3-4 líneas por mensaje).
+Responde de forma amigable, breve y directa (máximo 3-4 líneas por mensaje, EXCEPTO cuando el cliente pide el catálogo completo — en ese caso muéstralo íntegro sin omitir productos ni precios).
 
 CATÁLOGO Y SERVICIOS DEL NEGOCIO:
 {catalog}
@@ -94,7 +94,7 @@ async def get_bot_response(
         response = client.chat.completions.create(
             model="deepseek-chat",
             messages=messages,
-            max_tokens=400,
+            max_tokens=700,
         )
         raw = response.choices[0].message.content or ""
     except Exception:

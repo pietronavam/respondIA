@@ -26,7 +26,7 @@ AUTH_TOKEN    = os.getenv("TWILIO_AUTH_TOKEN", "")
 SANDBOX_FROM  = os.getenv("TWILIO_WHATSAPP_NUMBER", "whatsapp:+14155238886")
 DEBOUNCE_SECS = 7.0
 _INTEREST_PRICE   = _re.compile(r'S/\d+')
-_INTEREST_PRODUCT = _re.compile(r'polo|jean|blusa|vestido|talla|color|disponible|precio|stock|conjunto|short', _re.I)
+_INTEREST_PRODUCT = _re.compile(r'polo|jean|blusa|vestido|talla|color|disponible|precio|stock|conjunto|short|gafas|lentes|bolso|cartera|gorro|accesorio', _re.I)
 _TALLA_RE  = _re.compile(r'\btalla\b\s+(XS|S|M|L|XL|XXL|[0-9]+)', _re.I)
 _COLOR_RE  = _re.compile(
     r'\b(negro|negra|blanco|blanca|rojo|roja|azul|verde oliva|verde|amarillo|amarilla|'

@@ -367,7 +367,14 @@ def get_and_clear_buffer(customer: str, tenant_id: str, expected_time) -> list |
         if not buf:
             return None
         # If a newer message arrived (last_received_at > expected_time + 1s), abort
-        diff = (buf.last_received_at - expected_time).total_seconds()
+        # Normalize both to naive UTC to avoid PostgreSQL timezone-aware vs naive mismatch
+        stored = buf.last_received_at
+        if stored.tzinfo is not None:
+            stored = stored.replace(tzinfo=None)
+        exp = expected_time
+        if hasattr(exp, 'tzinfo') and exp.tzinfo is not None:
+            exp = exp.replace(tzinfo=None)
+        diff = (stored - exp).total_seconds()
         if diff > 1:
             return None
         msgs = json.loads(buf.messages or "[]")

@@ -132,9 +132,14 @@ async def _do_process_and_send(customer: str, tenant_id: str, user_message: str)
 async def _debounced(customer: str, tenant_id: str, received_at: datetime):
     """Wait DEBOUNCE_SECS; if no newer message arrived, process the whole buffer."""
     await asyncio.sleep(DEBOUNCE_SECS)
-    messages = get_and_clear_buffer(customer, tenant_id, received_at)
+    try:
+        messages = get_and_clear_buffer(customer, tenant_id, received_at)
+    except Exception as e:
+        print(f"[DEBOUNCE ERROR] buffer read failed for {customer}: {e}\n{traceback.format_exc()}")
+        return
     if not messages:
-        return  # A newer message arrived — its task will handle it
+        print(f"[DEBOUNCE] Skipped {customer} — newer message arrived or buffer missing")
+        return
     combined = "\n".join(messages)
     await _process_and_send(customer, tenant_id, combined)
 

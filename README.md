@@ -27,47 +27,51 @@ Para probar el bot en WhatsApp:
 2. Escríbele al bot como si fueras un cliente (ej: "¿tienen polos talla M?")
 3. Verifica la conversación en el [panel de control](https://respond-ia.streamlit.app/)
 
-**Video demo (2 min):** _[completar]_
+**Video demo (2 min):** _[ver docs/video_demo o YouTube]_
+
+## Credenciales de prueba
+
+| Rol | Acceso |
+|---|---|
+| Cliente WhatsApp | Envía `NABILA` al **+1 415 523 8886** |
+| Panel del dueño | [respond-ia.streamlit.app](https://respond-ia.streamlit.app/) — email: `nabila@demo.com` / pass: `demo1234` |
 
 ## Herramientas del curso utilizadas
 
-| Herramienta | Uso en el proyecto | Lectura |
+| Herramienta | Uso en el proyecto | Archivo |
 |---|---|---|
-| **DeepSeek API** | LLM que genera respuestas inteligentes al cliente (compatible OpenAI SDK) | 12-14 |
-| **PaddleOCR** | Extrae texto de PDFs/imágenes del catálogo | 14 |
-| **Whisper (OpenAI)** | Transcribe notas de voz de WhatsApp en español | — |
-| **FastAPI** | Backend REST + webhook Twilio | 8-10 |
-| **Streamlit** | Dashboard de control para el dueño del negocio | 11 |
-| **SQLite** | Historial de conversaciones por cliente | 9 |
-| **Twilio** | Integración con WhatsApp Sandbox | — |
+| **DeepSeek API** (LLM, OpenAI-compatible SDK) | Genera respuestas inteligentes al cliente con historial + catálogo | `backend/app/services/claude_service.py` |
+| **Whisper** (OpenAI speech-to-text) | Transcribe notas de voz de WhatsApp en español | `backend/app/services/whisper_service.py` |
+| **Agente de mensajería tipo OpenClaw** | Bot conectado a WhatsApp via Twilio + debounce de mensajes | `backend/app/routes/webhook.py` |
+| **FastAPI** | Backend REST + webhook de Twilio | `backend/app/main.py` |
+| **Streamlit** | Dashboard de control para el dueño del negocio | `frontend/app.py` |
+| **PostgreSQL** (Render) | Historial de conversaciones, pedidos, intereses, multi-tenant | `backend/app/database.py` |
 
 ## Arquitectura
 
-> Diagrama visual completo: [docs/architecture.html](docs/architecture.html)
-
 ```mermaid
 flowchart TD
-    A([📱 Cliente\nWhatsApp]) -->|texto / audio| B[📡 Twilio\nWhatsApp Sandbox]
+    A([Cliente\nWhatsApp]) -->|texto / audio / imagen| B[Twilio\nWhatsApp Sandbox]
     B -->|POST /webhook/whatsapp| C
 
-    subgraph BACKEND ["⚡ FastAPI Backend — Render"]
-        C[webhook.py] --> D{¿audio?}
-        D -->|sí| E[🎙️ Whisper\ntranscripción]
-        D -->|no| F[DeepSeek API\ndeeepseek-chat]
-        E --> F
-        C --> G[🗄️ SQLite\nhistorial · catálogo · config]
-        F -->|lee catálogo e historial| G
-        F --> H[respuesta generada]
+    subgraph BACKEND ["FastAPI Backend — Render"]
+        C[webhook.py\ndebounce 7s] --> D{tipo?}
+        D -->|audio| E[Whisper\ntranscripción]
+        D -->|imagen| F[Vision API\nverifica pago]
+        D -->|texto| G[DeepSeek LLM\ndeeepseek-chat]
+        E --> G
+        C --- H[(PostgreSQL\nmensajes · pedidos\nintereses · config)]
+        G -->|historial + catálogo| H
+        G --> I[respuesta + detección\nde pedido/interés]
     end
 
-    H -->|TwiML response| B
+    I -->|TwiML| B
     B -->|mensaje| A
 
-    subgraph DASHBOARD ["🎛️ Streamlit Dashboard — Streamlit Cloud"]
-        I([🏪 Dueño\npyme]) -->|HTTPS| J[Panel de Control]
-        J -->|sube PDF/imagen| K[👁️ PaddleOCR\nOCR → texto]
-        K -->|POST /catalog/upload| C
-        J -->|GET /conversations| C
+    subgraph DASHBOARD ["Streamlit Dashboard — Streamlit Cloud"]
+        J([Dueño\npyme]) -->|HTTPS + API key| K[Panel de Control]
+        K -->|gestiona catálogo\npedidos · intereses| H
+        K -->|envía followup\nWhatsApp| B
     end
 ```
 
@@ -117,20 +121,25 @@ respondIA/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py                  # FastAPI app
-│   │   ├── database.py              # SQLite — historial + settings
+│   │   ├── database.py              # PostgreSQL — historial + settings + multi-tenant
 │   │   ├── routes/
 │   │   │   ├── webhook.py           # Twilio WhatsApp webhook
-│   │   │   ├── catalog.py           # Upload y gestión de catálogo
+│   │   │   ├── catalog.py           # Gestión de catálogo y settings
+│   │   │   ├── orders.py            # Pedidos, intereses, followups
 │   │   │   └── conversations.py     # Historial de chats
 │   │   └── services/
-│   │       ├── claude_service.py    # DeepSeek API (OpenAI-compatible)
-│   │       ├── ocr.py               # PaddleOCR + PyMuPDF
-│   │       └── whisper_service.py   # Whisper transcripción de audio
+│   │       ├── claude_service.py    # DeepSeek LLM (OpenAI-compatible SDK)
+│   │       ├── followup_service.py  # Mensajes de seguimiento automáticos
+│   │       ├── vision_service.py    # Verificación de pagos por imagen
+│   │       └── whisper_service.py   # Whisper — transcripción de notas de voz
 │   └── requirements.txt
 ├── frontend/
 │   └── app.py                       # Streamlit dashboard
 ├── docs/
-│   └── index.html                   # Landing page (GitHub Pages)
+│   ├── index.html                   # Landing page (GitHub Pages)
+│   ├── architecture.html            # Diagrama de arquitectura interactivo
+│   └── research/
+│       └── validacion.md            # Evidencia de validación del problema
 ├── data/
 ├── .env.example
 └── render.yaml

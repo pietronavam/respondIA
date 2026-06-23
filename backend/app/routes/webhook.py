@@ -53,7 +53,13 @@ def _extract_interest(bot_reply: str) -> str:
         if type_before and type_before.group(0).lower() not in product.lower():
             product = f"{type_before.group(0).title()} {product}"
     else:
-        m = _re.search(r'(jean\s+\w+\s*\w*|polo\s+\w+\s*\w*|blusa\s*\w*|vestido\s*\w*|conjunto\s*\w*|short|falda)\b', line, _re.I)
+        m = _re.search(
+            r'(jean(?:\s+\w+){0,3}|polo(?:\s+\w+){0,3}|blusa(?:\s+\w+){0,2}|vestido(?:\s+\w+){0,2}'
+            r'|conjunto(?:\s+\w+){0,3}|short|falda'
+            r'|gafas(?:\s+\w+){0,4}|lentes(?:\s+\w+){0,3}|bolso(?:\s+\w+){0,4}'
+            r'|cartera(?:\s+\w+){0,3}|gorro(?:\s+\w+){0,3})',
+            line, _re.I
+        )
         product = m.group(0).strip().title() if m else ""
     # Strip talla/color suffixes from product name
     product = _re.sub(r'\s+talla\s+\S+', '', product, flags=_re.I).strip()

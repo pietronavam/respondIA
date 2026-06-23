@@ -121,7 +121,13 @@ async def _do_process_and_send(customer: str, tenant_id: str, user_message: str)
         except Exception as e:
             print(f"[ORDER ERROR] {e}\n{traceback.format_exc()}")
     elif _INTEREST_PRICE.search(bot_reply) and _INTEREST_PRODUCT.search(bot_reply):
-        upsert_interest(tenant_id, customer, _extract_interest(bot_reply))
+        extracted = _extract_interest(bot_reply)
+        print(f"[INTEREST] Saving for {customer}: {extracted} | reply_start={bot_reply[:80]!r}")
+        upsert_interest(tenant_id, customer, extracted)
+    else:
+        has_price = bool(_INTEREST_PRICE.search(bot_reply))
+        has_prod = bool(_INTEREST_PRODUCT.search(bot_reply))
+        print(f"[INTEREST] Not saved — price={has_price} prod={has_prod} | reply_start={bot_reply[:80]!r}")
 
     try:
         save_message(tenant_id, customer, user_message, bot_reply)

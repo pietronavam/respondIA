@@ -33,18 +33,29 @@ _COLOR_RE  = _re.compile(
     r'rosado|rosada|gris|morado|morada|beige|crema|naranja|celeste|marino|oliva|nude)\b', _re.I)
 
 
+_PRODUCT_LINE_RE = _re.compile(
+    r'jean|polo|blusa|vestido|conjunto|short|falda|gafas|lentes|bolso|cartera|gorro', _re.I
+)
+
+
 def _extract_interest(bot_reply: str) -> str:
     import json
-    line = bot_reply.split('\n')[0]
+    # Pick the first line that mentions a price or product — skip short greetings
+    lines = [l.strip() for l in bot_reply.split('\n') if l.strip()]
+    line = lines[0] if lines else bot_reply
+    for l in lines:
+        if _INTEREST_PRICE.search(l) or _PRODUCT_LINE_RE.search(l):
+            line = l
+            break
     # Talla and color from the full line (most reliable source)
     tm = _TALLA_RE.search(line)
     talla = tm.group(1).upper() if tm else ""
     cm = _COLOR_RE.search(line)
     color = cm.group(1).capitalize() if cm else ""
-    # Product: prefer bold text (*Polo básico*), then fallback to keyword search
-    bold = _re.search(r'\*([^*]+)\*', line)
+    # Product: prefer bold (*Polo básico*) or quoted ("gafas de sol"), then fallback
+    bold = _re.search(r'\*([^*]+)\*|"([^"]+)"', line)
     if bold:
-        product = bold.group(1).strip()
+        product = (bold.group(1) or bold.group(2) or "").strip()
         # If bold is just a descriptor ("wide leg"), prepend the product type found before it
         type_before = _re.search(
             r'\b(jean|polo|blusa|vestido|conjunto|short|falda)\w*\b',

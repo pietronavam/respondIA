@@ -198,21 +198,36 @@
   <div class="logo-mark">Respond<span>IA</span></div>
   <div class="slide-label">LA SOLUCIÓN</div>
   <h2 class="slide-title">RespondIA: el empleado de atención<br/>al cliente que nunca descansa</h2>
-  <div class="solution-grid" style="margin-top:36px">
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-top:28px">
     <div class="sol-card">
       <div class="icon">🧠</div>
       <h3>Aprende tu catálogo</h3>
-      <p>Sube tu lista de precios en texto o PDF. El bot aprende qué vendes en segundos con IA.</p>
+      <p>Sube tu lista de precios en texto. El bot aprende qué vendes en segundos con IA.</p>
     </div>
     <div class="sol-card">
-      <div class="icon">💬</div>
-      <h3>Responde automáticamente</h3>
-      <p>Atiende precios, disponibilidad, horarios y pedidos en WhatsApp sin que hagas nada.</p>
+      <div class="icon">📦</div>
+      <h3>Gestiona pedidos</h3>
+      <p>Crea pedidos con código único (#RESPIA-XXXX) automáticamente cuando el cliente confirma.</p>
+    </div>
+    <div class="sol-card">
+      <div class="icon">📸</div>
+      <h3>Verifica pagos</h3>
+      <p>El cliente envía su captura Yape/Plin; la IA la valida al instante y confirma el pedido.</p>
+    </div>
+    <div class="sol-card">
+      <div class="icon">🔔</div>
+      <h3>Seguimiento de leads</h3>
+      <p>Detecta interés (producto + talla + color) y envía mensajes automáticos a indecisos.</p>
+    </div>
+    <div class="sol-card">
+      <div class="icon">🎙️</div>
+      <h3>Notas de voz</h3>
+      <p>Transcribe audios de WhatsApp con Whisper. El cliente habla, el bot entiende.</p>
     </div>
     <div class="sol-card">
       <div class="icon">📊</div>
       <h3>Tú solo supervisas</h3>
-      <p>Panel de control en tiempo real. Actualiza el catálogo cuando quieras, desde el celular.</p>
+      <p>Panel en tiempo real. Pedidos, intereses y chats desde el celular, 24/7.</p>
     </div>
   </div>
   <div class="pg">3 / 10</div>
@@ -236,25 +251,27 @@
       </div>
       <div class="bubble bubble-user">Hola! tienen polos talla M? <div class="bubble-time">9:14 ✓✓</div></div>
       <div class="bubble bubble-bot">¡Hola! Sí tenemos 😊 Polos básicos talla M en blanco, negro y azul marino a <strong>S/30 c/u</strong>. ¿Te interesa algún color? <div class="bubble-time">9:14</div></div>
-      <div class="bubble bubble-user">uno negro, hacen delivery? <div class="bubble-time">9:15 ✓✓</div></div>
-      <div class="bubble bubble-bot">¡Claro! Delivery a Lima Metropolitana por <strong>S/10</strong> 📦 ¿A qué distrito te enviamos? <div class="bubble-time">9:15</div></div>
+      <div class="bubble bubble-user">uno negro talla M, cómo pago? <div class="bubble-time">9:15 ✓✓</div></div>
+      <div class="bubble bubble-bot"><strong>Polo básico</strong> negro talla M — S/30 + envío S/10 = <strong>S/40 total</strong>. Paga por Yape al 987-654-321 (Marianela) y envíame tu captura 📸 <div class="bubble-time">9:15</div></div>
+      <div class="bubble bubble-user">📷 [captura de pago Yape] <div class="bubble-time">9:16 ✓✓</div></div>
+      <div class="bubble bubble-bot">¡Pago verificado! ✅ Tu pedido <strong>#RESPIA-0042</strong> está confirmado. ¡Gracias! Te avisamos cuando esté en camino 🙌 <div class="bubble-time">9:16</div></div>
     </div>
 
     <div class="demo-right">
-      <h2 class="slide-title" style="font-size:32px; margin-bottom:32px">Conversación real<br/>con el bot en vivo</h2>
+      <h2 class="slide-title" style="font-size:32px; margin-bottom:24px">Flujo completo<br/>en WhatsApp real</h2>
       <div class="demo-point">
         <div class="dot">1</div>
-        <p><strong>El cliente escribe en WhatsApp</strong><br/>lenguaje natural, sin comandos</p>
+        <p><strong>Consulta → respuesta instantánea</strong><br/>lenguaje natural, notas de voz incluidas</p>
       </div>
       <div class="demo-point">
         <div class="dot">2</div>
-        <p><strong>DeepSeek AI genera la respuesta</strong><br/>en base al catálogo del negocio</p>
+        <p><strong>Pedido con código automático</strong><br/>el bot genera #RESPIA-XXXX y lo registra en BD</p>
       </div>
       <div class="demo-point">
         <div class="dot">3</div>
-        <p><strong>Respuesta en menos de 2 segundos</strong><br/>el dueño no tuvo que hacer nada</p>
+        <p><strong>Yape/Plin verificado por IA</strong><br/>foto del comprobante → pago confirmado + dueño notificado</p>
       </div>
-      <div style="margin-top:20px; padding:14px 20px; background:rgba(37,211,102,0.1); border:1px solid #25D366; border-radius:12px; font-size:13px; color:#a7f3d0;">
+      <div style="margin-top:16px; padding:14px 20px; background:rgba(37,211,102,0.1); border:1px solid #25D366; border-radius:12px; font-size:13px; color:#a7f3d0;">
         🔗 Demo en vivo: <strong>respond-ia.streamlit.app</strong>
       </div>
     </div>
@@ -380,33 +397,47 @@
   <div class="logo-mark">Respond<span>IA</span></div>
   <div class="slide-label">TRACCIÓN</div>
   <h2 class="slide-title">MVP funcional en producción</h2>
-  <div class="traction-grid">
+  <div class="traction-grid" style="grid-template-columns:1fr 1fr 1fr">
     <div class="traction-item">
       <div class="icon">🚀</div>
       <div>
         <h3>Backend en producción</h3>
-        <p>FastAPI deployado en Render — responde webhooks de Twilio 24/7</p>
+        <p>FastAPI en Render — responde webhooks Twilio 24/7 sin caídas</p>
       </div>
     </div>
     <div class="traction-item">
-      <div class="icon">💬</div>
+      <div class="icon">📦</div>
       <div>
-        <h3>Bot probado en WhatsApp real</h3>
-        <p>Conversaciones con el sandbox de Twilio — respuesta &lt;2s comprobada</p>
+        <h3>Flujo de pedido completo</h3>
+        <p>Pedido → código #RESPIA → Yape/Plin verificado → notificación al dueño</p>
+      </div>
+    </div>
+    <div class="traction-item">
+      <div class="icon">📸</div>
+      <div>
+        <h3>Verificación de pagos por IA</h3>
+        <p>Vision API valida capturas Yape/Plin automáticamente en producción</p>
+      </div>
+    </div>
+    <div class="traction-item">
+      <div class="icon">🔔</div>
+      <div>
+        <h3>Seguimiento automático de leads</h3>
+        <p>Detecta interés (producto + talla + color) y envía followup personalizado</p>
       </div>
     </div>
     <div class="traction-item">
       <div class="icon">🎛️</div>
       <div>
-        <h3>Panel de control live</h3>
-        <p>Streamlit Cloud — catálogo, configuración y conversaciones en tiempo real</p>
+        <h3>Multi-tenant SaaS en vivo</h3>
+        <p>Streamlit Cloud — tenant beta Nabila Home con flujo completo validado</p>
       </div>
     </div>
     <div class="traction-item">
       <div class="icon">🌐</div>
       <div>
-        <h3>Landing page publicada</h3>
-        <p>pietronavam.github.io/respondIA — onboarding y pricing explicados</p>
+        <h3>Landing + docs publicados</h3>
+        <p>GitHub Pages — landing, pitch deck y diagrama de arquitectura accesibles</p>
       </div>
     </div>
   </div>
@@ -424,12 +455,14 @@
     <div class="road-row" style="gap:12px; margin-top:36px">
       <div class="road-item done">
         <div class="phase">✓ HOY — MVP</div>
-        <h3>Prototipo funcional</h3>
+        <h3>Producto funcional en producción</h3>
         <ul>
-          <li>Bot WhatsApp en producción</li>
-          <li>Catálogo por texto/PDF</li>
-          <li>Panel de control</li>
-          <li>Deploy Render + Streamlit</li>
+          <li>Bot WhatsApp 24/7 (Twilio)</li>
+          <li>Pedidos con código único</li>
+          <li>Verificación Yape/Plin por foto</li>
+          <li>Seguimiento automático de leads</li>
+          <li>Notas de voz (Whisper)</li>
+          <li>Multi-tenant SaaS (PostgreSQL)</li>
         </ul>
       </div>
       <div class="arrow-sep" style="color:#25D366; font-size:28px; align-self:center">→</div>

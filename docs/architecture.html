@@ -16,7 +16,7 @@
     }
 
     .diagram {
-      width: 1100px;
+      width: 1200px;
       background: #1e293b;
       border-radius: 24px;
       padding: 48px;
@@ -58,8 +58,10 @@
     .node-db       { background: #172036; border: 2px solid #3b82f6; }
     .node-whisper  { background: #111820; border: 2px solid #0ea5e9; }
     .node-ocr      { background: #111820; border: 2px solid #0ea5e9; }
+    .node-followup { background: #0f1a20; border: 2px solid #22d3ee; }
     .node-dashboard{ background: #1a1020; border: 2px solid #a855f7; min-width: 160px; }
     .node-owner    { background: #1a1020; border: 2px solid #a855f7; }
+    .node-owner-wa { background: #0d3320; border: 2px solid #25D366; }
 
     /* ── ARROWS ── */
     .arrow {
@@ -202,10 +204,10 @@
 
   <div class="title">
     <h1>RespondIA — Arquitectura del Sistema</h1>
-    <p>FastAPI · DeepSeek · Twilio WhatsApp · PaddleOCR · Whisper · SQLite · Streamlit</p>
+    <p>FastAPI · DeepSeek · Twilio WhatsApp · Vision API · Whisper · Followup · PostgreSQL · Streamlit</p>
   </div>
 
-  <!-- ROW 1: Cliente + Twilio -->
+  <!-- ROW 1: Cliente + Twilio + Backend -->
   <div class="row">
 
     <!-- Cliente WhatsApp -->
@@ -218,7 +220,7 @@
     <!-- Arrow cliente → twilio -->
     <div class="arrow">
       <div class="line"></div>
-      <div class="label">texto / audio</div>
+      <div class="label">texto / audio / imagen</div>
     </div>
 
     <!-- Twilio -->
@@ -244,21 +246,26 @@
         <div class="node node-api">
           <span class="icon">⚡</span>
           <div class="name">FastAPI</div>
-          <div class="sub">webhook · catalog · conversations</div>
+          <div class="sub">webhook · catalog · orders · followup</div>
           <span class="badge badge-render">render.com</span>
         </div>
 
-        <!-- Servicios internos -->
-        <div style="display:flex; flex-direction:column; gap:10px;">
+        <!-- Servicios internos IA -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
           <div class="node node-whisper" style="min-width:130px">
             <span class="icon" style="font-size:20px">🎙️</span>
             <div class="name" style="font-size:12px">Whisper</div>
             <div class="sub">transcripción audio</div>
           </div>
           <div class="node node-ocr" style="min-width:130px">
-            <span class="icon" style="font-size:20px">👁️</span>
-            <div class="name" style="font-size:12px">PaddleOCR</div>
-            <div class="sub">PDF / imagen → texto</div>
+            <span class="icon" style="font-size:20px">📸</span>
+            <div class="name" style="font-size:12px">Vision API</div>
+            <div class="sub">Yape/Plin verificación</div>
+          </div>
+          <div class="node node-followup" style="min-width:130px">
+            <span class="icon" style="font-size:20px">🔔</span>
+            <div class="name" style="font-size:12px">Followup</div>
+            <div class="sub">leads automáticos</div>
           </div>
         </div>
 
@@ -270,11 +277,12 @@
           <span class="badge badge-cloud">cloud API</span>
         </div>
 
-        <!-- SQLite -->
+        <!-- PostgreSQL -->
         <div class="node node-db">
           <span class="icon">🗄️</span>
-          <div class="name">SQLite</div>
-          <div class="sub">historial · catálogo · config</div>
+          <div class="name">PostgreSQL</div>
+          <div class="sub">pedidos · intereses · historial · config</div>
+          <span class="badge badge-render">render.com</span>
         </div>
 
       </div>
@@ -301,9 +309,10 @@
   <!-- Separador -->
   <div style="border-top:1px dashed #1e293b; margin:24px 0 20px;"></div>
 
-  <!-- ROW 2: Dashboard -->
-  <div class="row" style="justify-content:flex-end; padding-right:60px; gap:16px">
+  <!-- ROW 2: Dashboard + Dueño (WhatsApp notificaciones) -->
+  <div class="row" style="justify-content:space-between; padding:0 20px; gap:16px">
 
+    <!-- Panel de control -->
     <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
       <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:#a855f7">PANEL DE CONTROL</span>
       <div style="display:flex;align-items:center;gap:0">
@@ -322,7 +331,7 @@
         <div class="node node-dashboard">
           <span class="icon">🎛️</span>
           <div class="name">Streamlit</div>
-          <div class="sub">catálogo · config · chats</div>
+          <div class="sub">catálogo · pedidos · intereses</div>
           <span class="badge badge-streamlit">streamlit cloud</span>
         </div>
 
@@ -334,8 +343,34 @@
         <div class="node node-api" style="min-width:140px">
           <span class="icon" style="font-size:20px">⚡</span>
           <div class="name">FastAPI</div>
-          <div class="sub">/catalog · /conversations</div>
+          <div class="sub">/catalog · /orders · /interests</div>
           <span class="badge badge-render">render.com</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Notificaciones WhatsApp al dueño -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+      <span style="font-size:10px;font-weight:700;letter-spacing:2px;color:#25D366">NOTIFICACIONES</span>
+      <div style="display:flex;align-items:center;gap:0">
+
+        <div class="node node-api" style="min-width:140px">
+          <span class="icon" style="font-size:20px">⚡</span>
+          <div class="name">FastAPI</div>
+          <div class="sub">pago verificado · envío</div>
+          <span class="badge badge-render">render.com</span>
+        </div>
+
+        <div class="arrow">
+          <div class="line"></div>
+          <div class="label">Twilio API</div>
+        </div>
+
+        <div class="node node-owner-wa">
+          <span class="icon">💰</span>
+          <div class="name">Dueño</div>
+          <div class="sub">WhatsApp directo</div>
         </div>
 
       </div>
@@ -351,7 +386,7 @@
     </div>
     <div class="legend-item">
       <div class="legend-dot" style="background:#3b82f6"></div>
-      <span>Backend (Render)</span>
+      <span>Backend + PostgreSQL (Render)</span>
     </div>
     <div class="legend-item">
       <div class="legend-dot" style="background:#f97316"></div>
@@ -359,7 +394,7 @@
     </div>
     <div class="legend-item">
       <div class="legend-dot" style="background:#0ea5e9"></div>
-      <span>Procesamiento local (OCR / Audio)</span>
+      <span>Servicios IA (Vision API / Whisper / Followup)</span>
     </div>
     <div class="legend-item">
       <div class="legend-dot" style="background:#a855f7"></div>

@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>RespondIA — Pitch Deck 2026</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -10,6 +11,22 @@
       font-family: 'Segoe UI', Arial, sans-serif;
       background: #111;
       color: #fff;
+    }
+
+    /* Scale slides to fit viewport width on screen */
+    @media screen {
+      .slide-wrapper {
+        width: 100vw;
+        display: flex;
+        justify-content: center;
+        overflow: hidden;
+        background: #111;
+      }
+      .slide {
+        transform-origin: top left;
+        transform: scale(var(--slide-scale, 1));
+        margin-bottom: calc((720px * var(--slide-scale, 1)) - 720px);
+      }
     }
 
     .slide {
@@ -514,5 +531,28 @@
   <div class="pg">10 / 10</div>
 </div>
 
+<script>
+  // Scale slides to fit viewport width on screen
+  function scaleSlides() {
+    var scale = Math.min(window.innerWidth / 1280, 1);
+    document.documentElement.style.setProperty('--slide-scale', scale);
+    // Wrap each slide so it occupies the right screen height
+    document.querySelectorAll('.slide').forEach(function(s) {
+      s.style.transformOrigin = 'top left';
+      s.style.transform = 'scale(' + scale + ')';
+      s.parentElement.style.height = (720 * scale) + 'px';
+      s.parentElement.style.overflow = 'hidden';
+    });
+  }
+  // Wrap slides on load
+  document.querySelectorAll('.slide').forEach(function(s) {
+    var wrapper = document.createElement('div');
+    wrapper.className = 'slide-wrapper';
+    s.parentNode.insertBefore(wrapper, s);
+    wrapper.appendChild(s);
+  });
+  scaleSlides();
+  window.addEventListener('resize', scaleSlides);
+</script>
 </body>
 </html>

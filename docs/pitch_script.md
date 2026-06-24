@@ -83,7 +83,19 @@ Esperamos una distribución 20% / 80% entre ambos planes. Eso da un ARPU de S/76
 
 ---
 
-## [SLIDE 8 — TRACCIÓN] Tracción (5:45 – 6:20)
+---
+
+## [SLIDE 8 — GO-TO-MARKET] Go-to-market (5:10 – 5:30)
+
+"De 0 a 2,500 clientes en 12 meses, en tres fases:
+
+Los **primeros 10**: contacto directo con dueñas de boutiques en Lima, demo en vivo con su catálogo real, primer mes gratis.
+
+Los **primeros 100**: Meta / IG Ads segmentados a dueños de tienda Lima. CPC estimado S/15, CAC S/200. TikTok orgánico con demos reales. Presupuesto: $3,000 USD.
+
+**Escala a 2,500**: alianzas con gremios de Gamarra, programa de referidos (1 mes gratis por amigo referido), expansión interprovincial. Meta: MRR S/190,000."
+
+## [SLIDE 9 — TRACCIÓN] Tracción (5:45 – 6:20)
 
 "El MVP está en producción hoy.
 
@@ -93,7 +105,7 @@ El panel está live en Streamlit Cloud. La landing en GitHub Pages. Código púb
 
 ---
 
-## [SLIDE 9 — VISIÓN] Visión y roadmap (6:20 – 6:45)
+## [SLIDE 10 — VISIÓN] Visión y roadmap (6:20 – 6:45)
 
 "Lo que tienen hoy es un MVP completo. Para el lanzamiento en Q3 2026: WhatsApp Business API oficial de Meta, URL propia, opción de número dedicado por cliente, Vision API con Anthropic Claude, y expansión interprovincial con foco en Gamarra. Registro self-service con pasarela Culqi.
 
@@ -101,7 +113,19 @@ A largo plazo: app móvil para el dueño, automatizaciones con bancos y platafor
 
 ---
 
-## [SLIDE 10 — CIERRE] Cierre (6:45 – 7:00)
+---
+
+## [SLIDE 11 — THE ASK] The ask (6:30 – 6:50)
+
+"Pedimos **$5,000 USD** para llegar a 100 clientes pagantes.
+
+- **$3,000** Meta/IG Ads — 3 meses de marketing
+- **$500** WhatsApp Business API + dominio propio
+- **$1,500** Operaciones — 3 meses
+
+Con esos $5,000 llegamos a 100 clientes, MRR > S/7,600, LTV/CAC validado en mercado real, churn medido. Esos datos nos abren la siguiente ronda para escalar a 2,500 clientes → S/190K MRR."
+
+## [SLIDE 12 — CIERRE] Cierre (6:45 – 7:00)
 
 "2.5 millones de pymes peruanas merecen atender a sus clientes sin perder horas de su día.
 

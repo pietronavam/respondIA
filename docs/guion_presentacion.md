@@ -138,6 +138,18 @@
 
 ---
 
+## SLIDE 6 — CÓMO FUNCIONA (4:15 – 4:50)
+
+*[Cambia a slide 6. Es una slide visual — deja que el público la lea.]*
+
+*"El proceso de onboarding es de 5 minutos: te registras, pegas tu catálogo en texto plano, conectas WhatsApp escaneando un QR, y desde ese momento el bot atiende solo. Tú solo supervisas desde el panel."*
+
+*[Pausa de 5 segundos — señala cada paso en pantalla]*
+
+*"Sin código, sin técnicos, sin contratar a nadie."*
+
+---
+
 ## SLIDE 7 — MODELO DE NEGOCIO (4:50 – 5:20)
 
 *[Cambia a slide 7 — salta el 6 si vas justo de tiempo]*
@@ -148,9 +160,23 @@
 
 ---
 
-## SLIDE 8 — TRACCIÓN (5:20 – 5:50)
+## SLIDE 8 — GO-TO-MARKET (5:20 – 5:40)
 
 *[Cambia a slide 8]*
+
+*"¿Cómo conseguimos los primeros clientes? En tres fases."*
+
+*"Los primeros diez los hacemos a mano: contacto directo con dueñas de boutiques en Miraflores y San Isidro, demo en vivo con su propio catálogo en 5 minutos, y primer mes gratis. Sin ads, sin budget — puro trabajo de ventas."*
+
+*"Los primeros cien: Meta e Instagram Ads segmentados a 'dueño de tienda Lima, vende por WhatsApp'. CPC estimado de S/15, lo que nos da un CAC de S/200. Complementado con TikTok orgánico mostrando demos reales."*
+
+*"Y para escalar a 2,500: alianzas con gremios de Gamarra, programa de referidos, y expansión interprovincial. La meta es S/190,000 de MRR en año 1."*
+
+---
+
+## SLIDE 9 — TRACCIÓN (5:40 – 6:10)
+
+*[Cambia a slide 9]*
 
 *"No estamos vendiendo una idea. Esto ya existe y ya funciona."*
 
@@ -160,9 +186,9 @@
 
 ---
 
-## SLIDE 9 — VISIÓN (5:50 – 6:15)
+## SLIDE 10 — VISIÓN / ROADMAP (6:10 – 6:30)
 
-*[Cambia a slide 9]*
+*[Cambia a slide 10]*
 
 *"Para el lanzamiento en Q3 2026: WhatsApp Business API oficial de Meta, dominio y URL propios, opción de darle a cada cliente su propio número de WhatsApp, y migrar la Vision API a Anthropic Claude para mayor precisión. También queremos expandir a otras provincias y a Gamarra — en ese solo distrito hay cientos de tiendas que tienen exactamente este problema. Registro self-service con pasarela Culqi."*
 
@@ -170,9 +196,25 @@
 
 ---
 
-## SLIDE 10 — CIERRE (6:15 – 6:45)
+## SLIDE 11 — THE ASK (6:30 – 6:50)
 
-*[Cambia a slide 10. Deja el celular. Mira al público.]*
+*[Cambia a slide 11. Mantén contacto visual con el público.]*
+
+*"Pedimos $5,000 dólares. Y les digo exactamente para qué."*
+
+*[Señala el breakdown en pantalla]*
+
+*"Tres mil para Meta e Instagram Ads — con un CAC de $55 por cliente, eso nos da 54 clientes pagantes solo por ads. Mil quinientos para operaciones tres meses — infra, WhatsApp Business API, dominio. Y quinientos de buffer para la API oficial de Meta."*
+
+*[Pausa]*
+
+*"Con esos $5,000 llegamos a 100 clientes pagantes activos. En ese punto tenemos MRR de S/7,600, LTV/CAC de 7.6x validado con datos reales, y churn medido. Esos datos nos permiten ir por la siguiente ronda para escalar a 2,500 clientes y S/190,000 de MRR."*
+
+---
+
+## SLIDE 12 — CIERRE (6:50 – 7:00)
+
+*[Cambia a slide 12. Deja el celular. Mira al público.]*
 
 *"2.5 millones de pymes peruanas merecen atender a sus clientes sin perder horas de su día."*
 
@@ -251,11 +293,13 @@
 | 3 | Solución (6 features) | 0:40 | 2:10 |
 | 4 | Demo en vivo | 2:05 | 4:15 |
 | 5 | Mercado TAM/SAM/SOM | 0:35 | 4:50 |
-| 7 | Modelo + unit economics | 0:30 | 5:20 |
-| 8 | Tracción | 0:30 | 5:50 |
-| 9 | Visión + roadmap | 0:25 | 6:15 |
-| 10 | Cierre | 0:30 | 6:45 |
-| — | Buffer | 0:15 | 7:00 |
+| 6 | Cómo funciona (visual) | 0:15 | 5:05 |
+| 7 | Modelo + unit economics | 0:30 | 5:35 |
+| 8 | Go-to-market | 0:20 | 5:55 |
+| 9 | Tracción | 0:25 | 6:20 |
+| 10 | Visión + roadmap | 0:20 | 6:40 |
+| 11 | The Ask | 0:10 | 6:50 |
+| 12 | Cierre | 0:10 | 7:00 |
 
 ---
 

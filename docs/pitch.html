@@ -659,27 +659,69 @@
 </div>
 
 <script>
-  // Scale slides to fit viewport width on screen
-  function scaleSlides() {
-    var scale = Math.min(window.innerWidth / 1280, 1);
-    document.documentElement.style.setProperty('--slide-scale', scale);
-    // Wrap each slide so it occupies the right screen height
-    document.querySelectorAll('.slide').forEach(function(s) {
-      s.style.transformOrigin = 'top left';
-      s.style.transform = 'scale(' + scale + ')';
-      s.parentElement.style.height = (720 * scale) + 'px';
-      s.parentElement.style.overflow = 'hidden';
-    });
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var current = 0;
+
+  // Scale a slide to fit the viewport
+  function scaleSlide(s) {
+    var scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720, 1);
+    s.style.transformOrigin = 'top left';
+    s.style.transform = 'scale(' + scale + ')';
+    s.style.position = 'absolute';
+    s.style.top = Math.max(0, (window.innerHeight - 720 * scale) / 2) + 'px';
+    s.style.left = Math.max(0, (window.innerWidth - 1280 * scale) / 2) + 'px';
   }
-  // Wrap slides on load
-  document.querySelectorAll('.slide').forEach(function(s) {
-    var wrapper = document.createElement('div');
-    wrapper.className = 'slide-wrapper';
-    s.parentNode.insertBefore(wrapper, s);
-    wrapper.appendChild(s);
+
+  function showSlide(n) {
+    n = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, i) {
+      s.style.display = i === n ? 'flex' : 'none';
+      if (i === n) scaleSlide(s);
+    });
+    current = n;
+    // Update counter display
+    var el = document.getElementById('slide-counter');
+    if (el) el.textContent = (n + 1) + ' / ' + slides.length;
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+      showSlide(current + 1); e.preventDefault();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+      showSlide(current - 1); e.preventDefault();
+    }
   });
-  scaleSlides();
-  window.addEventListener('resize', scaleSlides);
+
+  // Click right half → next, left half → prev
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('a,button')) return;
+    e.clientX > window.innerWidth / 2 ? showSlide(current + 1) : showSlide(current - 1);
+  });
+
+  // Swipe support (mobile / trackpad)
+  var touchX = 0;
+  document.addEventListener('touchstart', function(e) { touchX = e.touches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 40) dx < 0 ? showSlide(current + 1) : showSlide(current - 1);
+  }, {passive:true});
+
+  // Body setup
+  document.body.style.overflow = 'hidden';
+  document.body.style.height = '100vh';
+  document.body.style.background = '#0f172a';
+  document.body.style.position = 'relative';
+
+  // Counter overlay
+  var counter = document.createElement('div');
+  counter.id = 'slide-counter';
+  counter.style.cssText = 'position:fixed;bottom:12px;right:16px;color:rgba(255,255,255,0.25);font-size:13px;font-family:monospace;z-index:999;pointer-events:none';
+  document.body.appendChild(counter);
+
+  window.addEventListener('resize', function() { scaleSlide(slides[current]); });
+
+  showSlide(0);
 </script>
 </body>
 </html>

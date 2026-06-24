@@ -69,15 +69,17 @@ El TAM es de 2.1 mil millones de dólares en software para pymes en Latinoaméri
 
 Las soluciones que existen — ManyChat, WATI, Respond.io — cuestan entre 49 y 299 dólares al mes, están en inglés, y requieren configuración técnica. No existe nada pensado para el mercado peruano, en español, con onboarding en 5 minutos.
 
-Nuestra meta año 1 es 2,500 clientes a un ticket promedio de S/70 al mes — 2.9 millones de dólares de SOM."
+Nuestra meta año 1 es 2,500 clientes — menos del 1% del SAM. A S/76 de ARPU, eso es S/190,000 de MRR y S/2.3 millones de ARR."
 
 ---
 
 ## [SLIDE 7 — MODELO] Modelo de negocio (5:10 – 5:45)
 
-"Es SaaS. Dos planes: Básico a S/49 y Pro a S/99 al mes.
+"Es SaaS mensual. Dos planes:
+- **Básico S/59.99**: hasta 2,000 mensajes, gestión automática de pedidos, panel simplificado (el dueño solo ve pedidos por despachar).
+- **Pro S/79.99**: mensajes ilimitados, audio con Whisper, imágenes con Vision, seguimiento de leads. Próximamente: followup post-venta y gestión de quejas.
 
-El costo de la API de DeepSeek para el volumen de un cliente promedio es de aproximadamente S/3 al mes. Eso nos da un **margen bruto de 96%** y un LTV proyectado a 24 meses de S/1,330 por cliente."
+Esperamos una distribución 20% / 80% entre ambos planes. Eso da un ARPU de S/76. Costo variable por cliente: ~S/5 (API + Twilio + infra). **Margen de contribución: 93%.** LTV: S/1,520. CAC: S/200. LTV/CAC: 7.6x."
 
 ---
 
@@ -85,17 +87,17 @@ El costo de la API de DeepSeek para el volumen de un cliente promedio es de apro
 
 "El MVP está en producción hoy.
 
-El backend responde en Render 24/7. Tenemos un tenant beta activo — Nabila Home — con el flujo completo validado: consulta, pedido, verificación de pago Yape/Plin, seguimiento de leads, notificación al dueño.
+El backend responde en Render 24/7. El flujo completo — consulta, pedido, verificación Yape/Plin, seguimiento de leads, notificación al dueño — fue probado internamente con usuarios de prueba (amigos y familia simulando clientes). No tenemos clientes de pago todavía, pero el sistema funciona de punta a punta.
 
-El panel de control está live en Streamlit Cloud. La landing page está publicada en GitHub Pages."
+El panel está live en Streamlit Cloud. La landing en GitHub Pages. Código público en GitHub."
 
 ---
 
 ## [SLIDE 9 — VISIÓN] Visión y roadmap (6:20 – 6:45)
 
-"Lo que tienen hoy es un MVP completo. Para Q3 2026 queremos conectar WhatsApp Business API real, habilitar registro self-service, y llegar a 10 clientes de pago.
+"Lo que tienen hoy es un MVP completo. Para el lanzamiento en Q3 2026: WhatsApp Business API oficial de Meta, URL propia, opción de número dedicado por cliente, Vision API con Anthropic Claude, y expansión interprovincial con foco en Gamarra. Registro self-service con pasarela Culqi.
 
-A largo plazo: expansión regional a Colombia y Ecuador, app móvil para el dueño, y soporte en quechua para mercados rurales."
+A largo plazo: app móvil para el dueño, automatizaciones con bancos y plataformas de las propias empresas, más funcionalidades e integraciones. Meta: 2,500 clientes en año 1 — MRR de S/190,000."
 
 ---
 

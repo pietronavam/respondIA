@@ -130,11 +130,11 @@
 
 *[Cambia a slide 5]*
 
-*"¿Cuán grande es el mercado? El TAM de software para pymes en Latinoamérica es de 2.1 mil millones de dólares. Nuestro SAM son las 450,000 pymes peruanas con WhatsApp activo — a S/70 de ticket promedio, son 378 millones de soles al año."*
+*"¿Cuán grande es el mercado? El TAM de software para pymes en Latinoamérica es de 2.1 mil millones de dólares. Nuestro SAM son las 450,000 pymes peruanas con WhatsApp activo — a S/76 de ARPU, son más de S/400 millones al año."*
 
 *"Y la competencia no llega a este segmento. ManyChat, WATI, Respond.io — todos cobran entre 49 y 299 dólares al mes, están en inglés, y requieren configuración técnica. No existe nada en el mercado peruano, en español, con onboarding en 5 minutos, que verifique Yape o Plin."*
 
-*"Nuestra meta año 1 es 2,500 clientes — eso es capturar menos del 1% del SAM."*
+*"Nuestra meta año 1 es 2,500 clientes — menos del 1% del SAM. A S/76 de ARPU, eso es S/190,000 de MRR y S/2.3 millones de ARR."*
 
 ---
 
@@ -142,9 +142,9 @@
 
 *[Cambia a slide 7 — salta el 6 si vas justo de tiempo]*
 
-*"El modelo es SaaS mensual. Dos planes: S/49 básico y S/99 pro. ARPU proyectado de S/70."*
+*"El modelo es SaaS mensual. Dos planes: S/59.99 básico — hasta dos mil mensajes al mes, con gestión automática de pedidos y un panel simplificado donde el dueño solo ve los pedidos pendientes de despachar. Y S/79.99 Pro — mensajes ilimitados, el bot puede leer audios con Whisper e imágenes con Vision, y además hace seguimiento automático de leads que no concretaron la compra. Próximamente también tendrá followup post-venta y gestión de quejas y reclamaciones."*
 
-*"El costo de la API de DeepSeek para un cliente activo promedio es de aproximadamente S/3 al mes. Eso nos da un margen bruto del 93%. LTV a 24 meses de S/1,330. CAC estimado de S/200. LTV/CAC de 6.6x — muy saludable para SaaS en etapa inicial."*
+*"Esperamos una distribución del 20% en Básico y 80% en Pro — eso nos da un ARPU de S/76 al mes. El costo variable por cliente ronda los S/5 entre API de DeepSeek, Twilio e infraestructura. Margen de contribución: 93%. LTV: S/1,520. CAC estimado: S/200. LTV/CAC de 7.6x — muy saludable para SaaS en etapa inicial."*
 
 ---
 
@@ -154,9 +154,9 @@
 
 *"No estamos vendiendo una idea. Esto ya existe y ya funciona."*
 
-*"El backend está en producción en Render desde junio 2026 con 99.9% de uptime. Tenemos un tenant beta activo — Nabila Home — con el flujo completo validado: desde la consulta hasta la verificación del pago. El panel de control está live en Streamlit Cloud. La landing page está en GitHub Pages. Y el código es público en github.com/pietronavam/respondIA."*
+*"El backend está en producción en Render desde junio 2026 con 99.9% de uptime. El flujo completo — consulta, pedido, verificación de pago Yape/Plin, seguimiento automático de leads, notificación al dueño — fue probado internamente con usuarios de prueba: amigos y familia simulando ser clientes reales. El panel de control está live en Streamlit Cloud, y la landing está publicada en GitHub Pages."*
 
-*"Lo que acaban de ver en la demo — eso es producción real, no un prototipo."*
+*"Lo que acaban de ver en la demo — eso es el sistema real funcionando, no una simulación."*
 
 ---
 
@@ -164,11 +164,9 @@
 
 *[Cambia a slide 9]*
 
-*"Para Q3 2026: WhatsApp Business API oficial de Meta, registro self-service, pasarela de pago con Culqi, y 10 clientes pagantes."*
+*"Para el lanzamiento en Q3 2026: WhatsApp Business API oficial de Meta, dominio y URL propios, opción de darle a cada cliente su propio número de WhatsApp, y migrar la Vision API a Anthropic Claude para mayor precisión. También queremos expandir a otras provincias y a Gamarra — en ese solo distrito hay cientos de tiendas que tienen exactamente este problema. Registro self-service con pasarela Culqi."*
 
-*"Para Q1 2027: expansión a Colombia y Ecuador — mismo idioma, mismo problema, mismo producto."*
-
-*"Largo plazo: soporte en quechua para mercados rurales, integraciones con sistemas POS, y app móvil para el dueño."*
+*"Para Q1 2027 en adelante: app móvil para el dueño, automatizaciones con bancos y plataformas de las propias empresas, y seguir innovando con más funcionalidades y automatizaciones. La meta es llegar a 2,500 clientes en el primer año de operación, lo que representa un MRR de S/190,000."*
 
 ---
 

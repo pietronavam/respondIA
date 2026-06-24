@@ -242,7 +242,7 @@
   <ul>
     <li><strong>Producto:</strong> diseñé la experiencia del cliente, el flujo de pedido completo y el sistema de seguimiento de leads desde cero.</li>
     <li><strong>Ingeniería:</strong> construí el backend con FastAPI + PostgreSQL usando Claude Code como CTO virtual. Deployé en Render y Streamlit Cloud.</li>
-    <li><strong>Ventas/Validación:</strong> conduje 3 entrevistas estructuradas con dueñas de tiendas en Lima, configuré el tenant beta Nabila Home y validé el flujo end-to-end.</li>
+    <li><strong>Ventas/Validación:</strong> conduje 3 entrevistas estructuradas con dueñas de tiendas en Lima, y probé el flujo completo del sistema con amigos y familia actuando como clientes (bajo el nombre de prueba "Nabila Home").</li>
   </ul>
   <div class="box insight">
     <strong>Founder-market fit:</strong> mi investigación cuantitativa sobre digitalización de pymes peruanas (PSM, n=10,275, EEA 2024) me dio acceso al dato y al dolor antes de construir la solución. No tuve que convencerme de que el problema existía — lo medí.
@@ -357,7 +357,7 @@
     <tbody>
       <tr>
         <td>Precio / mes</td>
-        <td><strong>S/49–99</strong></td>
+        <td><strong>S/59.99–79.99</strong></td>
         <td>$15–299 USD</td>
         <td>$49–299 USD</td>
         <td>$99–499 USD</td>
@@ -466,34 +466,56 @@
 <div class="section">
   <h2><span class="num">9.</span> Modelo de negocio y pricing</h2>
 
-  <p><strong>Revenue model:</strong> SaaS mensual con dos planes.</p>
+  <p><strong>Revenue model:</strong> SaaS mensual con dos planes. Sin comisión por transacción ni costo de setup.</p>
 
   <table>
     <thead><tr><th>Plan</th><th>Precio</th><th>Incluye</th></tr></thead>
     <tbody>
       <tr>
         <td><strong>Básico</strong></td>
-        <td>S/49/mes</td>
-        <td>Hasta 500 mensajes, 1 número WhatsApp, catálogo ilimitado, gestión de pedidos, notas de voz</td>
+        <td>S/59.99/mes</td>
+        <td>Hasta 2,000 mensajes/mes · 1 número WhatsApp · catálogo ilimitado · gestión automática de pedidos · panel simplificado (el dueño solo ve pedidos por despachar) · historial de chats</td>
       </tr>
       <tr class="highlight">
-        <td><strong>Pro ⭐</strong></td>
-        <td>S/99/mes</td>
-        <td>Mensajes ilimitados + todo lo anterior + verificación Yape/Plin, followup automático de leads, notificaciones WhatsApp al dueño, reportes de ventas</td>
+        <td><strong>Pro</strong></td>
+        <td>S/79.99/mes</td>
+        <td>Mensajes ilimitados · todo lo del Básico · audio con Whisper + imágenes con Vision · verificación Yape/Plin · followup automático de leads no concretados · notificaciones WhatsApp al dueño · <em>Próx:</em> followup post-venta + gestión de quejas/reclamaciones</td>
       </tr>
     </tbody>
   </table>
 
-  <p><strong>Unit economics:</strong></p>
+  <p><strong>Unit economics (proyectado con distribución 20% Básico / 80% Pro):</strong></p>
   <ul>
-    <li><strong>ARPU mensual:</strong> S/70 (mezcla 60% básico, 40% pro)</li>
-    <li><strong>Costo variable por cliente:</strong> ~S/3 DeepSeek API + S/0.5 Twilio + S/1 infraestructura = S/4.5/mes</li>
-    <li><strong>Margen de contribución:</strong> (70 − 4.5) / 70 = <strong>93.6%</strong></li>
-    <li><strong>Churn estimado:</strong> 5%/mes (hipótesis conservadora)</li>
-    <li><strong>LTV a 24 meses:</strong> S/70 / 0.05 × (1 − e⁻⁰·⁰⁵×²⁴) ≈ <strong>S/1,330</strong></li>
-    <li><strong>CAC estimado:</strong> S/200 (Meta/Google Ads + 1–2 reuniones de ventas)</li>
-    <li><strong>LTV/CAC:</strong> 6.6x — saludable para SaaS</li>
+    <li><strong>ARPU mensual:</strong> 0.20 × S/59.99 + 0.80 × S/79.99 = <strong>S/76/mes</strong></li>
+    <li><strong>Costos variables por cliente:</strong></li>
   </ul>
+  <table style="margin-left:20px; width:60%">
+    <thead><tr><th>Componente</th><th>Costo/mes</th></tr></thead>
+    <tbody>
+      <tr><td>API DeepSeek (LLM)</td><td>~S/3</td></tr>
+      <tr><td>Twilio (mensajería)</td><td>~S/1</td></tr>
+      <tr><td>Render / PostgreSQL (infra)</td><td>~S/1</td></tr>
+      <tr class="highlight"><td><strong>Total costo variable</strong></td><td><strong>~S/5/cliente</strong></td></tr>
+    </tbody>
+  </table>
+  <ul style="margin-top:12px">
+    <li><strong>Margen de contribución:</strong> (76 − 5) / 76 = <strong>93.4% por cliente</strong></li>
+    <li><strong>Churn estimado:</strong> 5%/mes (hipótesis conservadora)</li>
+    <li><strong>LTV:</strong> S/76 / 0.05 = <strong>S/1,520 por cliente</strong></li>
+    <li><strong>CAC estimado:</strong> S/200 (Meta Ads + demo personal)</li>
+    <li><strong>LTV/CAC:</strong> <strong>7.6x</strong> — muy saludable para SaaS en etapa inicial</li>
+  </ul>
+
+  <p style="margin-top:12px"><strong>Proyección de ingresos:</strong></p>
+  <table style="width:90%">
+    <thead><tr><th>Clientes</th><th>MRR</th><th>Costos variables</th><th>Margen mensual</th></tr></thead>
+    <tbody>
+      <tr><td>50</td><td>S/3,800</td><td>S/250</td><td>S/3,550 (93%)</td></tr>
+      <tr><td>100</td><td>S/7,600</td><td>S/500</td><td>S/7,100 (93%)</td></tr>
+      <tr><td>500</td><td>S/38,000</td><td>S/2,500</td><td>S/35,500 (93%)</td></tr>
+      <tr class="highlight"><td><strong>2,500 (meta año 1)</strong></td><td><strong>S/190,000</strong></td><td>S/12,500</td><td><strong>S/177,500</strong></td></tr>
+    </tbody>
+  </table>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -511,7 +533,7 @@
     <li>Alianzas con gremios de comerciantes (Gamarra, Asociación de Boutiques de Lima)</li>
     <li>Programa de referidos: 1 mes gratis por cada cliente que traiga un amigo</li>
     <li>Partnerships con contadores/asesores de pymes que recomienden la herramienta</li>
-    <li>Expansión a Colombia y Ecuador con el mismo producto (mismo idioma, mismo problema)</li>
+    <li>Expansión interprovincial y a Gamarra (Lima comercial): cientos de comercios concentrados en un solo distrito con exactamente el mismo problema</li>
   </ul>
 </div>
 
@@ -522,12 +544,12 @@
   <h2><span class="num">11.</span> Tracción / señales tempranas</h2>
   <div class="metrics">
     <div class="metric">
-      <div class="val">1</div>
-      <div class="lbl">Tenant beta activo (Nabila Home)</div>
+      <div class="val">MVP</div>
+      <div class="lbl">Probado internamente con usuarios de prueba</div>
     </div>
     <div class="metric">
       <div class="val">100%</div>
-      <div class="lbl">Flujo end-to-end validado</div>
+      <div class="lbl">Flujo end-to-end funcional</div>
     </div>
     <div class="metric">
       <div class="val">3</div>
@@ -540,7 +562,7 @@
   </div>
   <ul>
     <li><strong>Backend en producción:</strong> FastAPI deployado en Render, respondiendo webhooks de Twilio 24/7 desde junio 2026.</li>
-    <li><strong>Flujo completo validado:</strong> consulta de catálogo → pedido con código #RESPIA → foto Yape/Plin → pago verificado por IA → notificación al dueño.</li>
+    <li><strong>Prueba interna del flujo completo:</strong> el ciclo consulta → pedido → pago Yape/Plin → notificación al dueño fue probado con amigos y familia actuando como clientes, bajo el nombre "Nabila Home" (empresa de prueba interna). No tenemos clientes externos de pago todavía — esto es lo que buscamos validar post-presentación.</li>
     <li><strong>Seguimiento de leads activo:</strong> el bot detecta producto + talla + color de interés y genera followup automático con contexto personalizado.</li>
     <li><strong>Panel de control live:</strong> respond-ia.streamlit.app con multi-tenant, historial de chats, gestión de pedidos y configuración del catálogo.</li>
     <li><strong>Validación cualitativa:</strong> 3 dueñas de tiendas de ropa en Lima confirmaron el dolor y expresaron interés en pagar por la solución.</li>
@@ -566,33 +588,34 @@
       </ul>
     </div>
     <div class="road-col next">
-      <div class="phase">Q3 2026 — Beta</div>
+      <div class="phase">Q3 2026 — Lanzamiento</div>
       <h3>Primeros clientes</h3>
       <ul>
         <li>WhatsApp Business API (Meta)</li>
-        <li>Registro self-service</li>
-        <li>Pasarela Culqi/Izipay</li>
-        <li>10 clientes pagantes</li>
+        <li>URL propia + número dedicado/cliente</li>
+        <li>Vision API con Anthropic Claude</li>
+        <li>Expansión interprovincial y Gamarra</li>
+        <li>Registro self-service + Culqi</li>
       </ul>
     </div>
     <div class="road-col next">
-      <div class="phase">Q4 2026 — Escala Lima</div>
-      <h3>Crecimiento</h3>
+      <div class="phase">Q4 2026 — Crecimiento</div>
+      <h3>Escala e innovación</h3>
       <ul>
+        <li>Más automatizaciones y funcionalidades</li>
         <li>Reportes de ventas avanzados</li>
-        <li>App móvil para el dueño</li>
-        <li>50 clientes pagantes</li>
-        <li>MRR &gt; S/3,500</li>
+        <li>50+ clientes pagantes</li>
+        <li>MRR &gt; S/3,800</li>
       </ul>
     </div>
     <div class="road-col next">
-      <div class="phase">Q2 2027 — Regional</div>
-      <h3>Expansión</h3>
+      <div class="phase">Q1 2027+ — Futuro</div>
+      <h3>Innovación continua</h3>
       <ul>
-        <li>Colombia y Ecuador</li>
-        <li>Integraciones POS/ERP</li>
-        <li>200 clientes</li>
-        <li>Serie A prep</li>
+        <li>App móvil para el dueño</li>
+        <li>Automatizaciones con bancos</li>
+        <li>Integraciones plataformas propias</li>
+        <li>200+ clientes · seguir escalando</li>
       </ul>
     </div>
   </div>
